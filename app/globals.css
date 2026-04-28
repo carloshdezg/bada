@@ -1,26 +1,253 @@
 @import "tailwindcss";
 
+/* ── Base variables ────────────────────────────────────────────── */
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0F1923;
+
+  
+
+  /* Shadows — used as arbitrary values: shadow-[var(--shadow)] */
+  --shadow-sm: 0 1px 4px rgba(15,25,35,.08);
+  --shadow:    0 4px 20px rgba(15,25,35,.1);
+  --shadow-lg: 0 12px 48px rgba(15,25,35,.14);
 }
 
+/* ── Tailwind theme — font CSS vars pass-through ───────────────── */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans:    var(--font-body), sans-serif;
+  --font-heading: var(--font-display), Georgia, serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ── Brand & UI design tokens ──────────────────────────────────── */
+/*
+ * REGLA 80/20: naranja domina (~80%), azul acompaña (~20%).
+ * Azul NUNCA en CTAs, hovers grandes, fondos de sección completos ni headlines.
+ * Azul SÍ en: Rastrear (outline), badges, íconos, micro-interacciones, links info.
+ */
+@theme {
+  
+  /* ── Base colors ───────────────────────────────────────────── */
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-transparent: transparent;
+  
+  /* ── Brand Orange — DOMINANTE (~80%) ──────────────────────────
+     Uso: CTAs (Cotizar, hero main, cierre de sección), fondos primarios   */
+  --color-brand-orange:       #F16227;   /* DEFAULT — fill de CTA */
+  --color-brand-orange-light: #F47D4A;   /* hover */
+  --color-brand-orange-dark:  #D54E1A;   /* pressed */
+  --color-brand-orange-50:    #FEF0EA;   /* fondo suave */
+  --color-brand-orange-100:   #FCDDCE;   /* fondo medio */
+
+  /* ── Brand Blue / Teal — ACENTO (~20%) ────────────────────────
+     Uso: Rastrear (outline), badges "en tránsito", íconos info, pills      */
+  --color-brand-blue:         #14A3BE;   /* DEFAULT — fill info */
+  --color-brand-blue-light:   #3DBCD5;   /* hover */
+  --color-brand-blue-dark:    #0E869C;   /* pressed */
+  --color-brand-blue-50:      #E6F7FB;   /* fondo suave / pill bg */
+  --color-brand-blue-100:     #BCEAF4;   /* fondo medio */
+  --color-brand-blue-700:     #0E869C;   /* alias → dark (compatibilidad escala numérica) */
+
+  /* ── Ink — escala de neutrales oscuros ─────────────────────── */
+  --color-ink:    #0F1923;
+  --color-ink-80: #2A3746;
+  --color-ink-50: #6B7E90;
+  --color-ink-20: #B8C6D1;
+
+  /* ── Gray — escala de grises UI ────────────────────────────── */
+  --color-gray-50:  #F8FAFB;
+  --color-gray-100: #EFF2F5;
+  --color-gray-200: #DDE3EA;
+  --color-gray-300: #C5CDD7;
+
+  /* ── Feedback ──────────────────────────────────────────────── */
+  --color-success:    #16A34A;
+  --color-success-bg: #F0FDF4;
+  --color-danger:     #DC2626;
+
+  /* ── Semantic tokens — USAR ESTOS EN COMPONENTES ──────────────
+     Abstraen la paleta; si la paleta cambia, los componentes no se tocan   */
+
+  /* action* → naranja — CTAs primarios (Cotizar, hero, cierre de sección) */
+  --color-action:         #F16227;  /* = brand-orange */
+  --color-action-hover:   #F47D4A;  /* = brand-orange-light */
+  --color-action-pressed: #D54E1A;  /* = brand-orange-dark */
+  --color-action-soft:    #FEF0EA;  /* = brand-orange-50 — fondo suave de apoyo al CTA */
+
+  /* info* → azul/teal — Rastrear, en tránsito, badges informativos */
+  --color-info:      #14A3BE;  /* = brand-blue */
+  --color-info-soft: #E6F7FB;  /* = brand-blue-50 — fondo de pills */
+
+  /* surface* → fondos de sección */
+  --color-surface:      #ffffff;   /* fondo blanco estándar */
+  --color-surface-alt:  #F8FAFB;   /* = gray-50 — fondo suave alterno */
+  --color-surface-dark: #0F1923;   /* = ink — secciones oscuras (footer, Cómo funciona) */
+}
+
+/* ── Custom utilities ───────────────────────────────────────────── */
+@utility max-w-site {
+  max-width: 1180px;
+}
+
+/* ── Component classes ──────────────────────────────────────────── */
+@layer components {
+
+  /* ── Tag / eyebrow pill — naranja, sobre headings de sección ── */
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--color-action);
+    background: var(--color-action-soft);
+    padding: 5px 13px;
+    border-radius: 100px;
+    margin-bottom: 20px;
+  }
+  .tag::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-action);
+    flex-shrink: 0;
+  }
+
+  /* ── Eyebrow — versión texto plano (sin pill) ────────────────── */
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-ink-50);
+  }
+
+  /* ── Button system ───────────────────────────────────────────── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: background-color 0.22s, box-shadow 0.22s, transform 0.22s,
+                border-color 0.22s, color 0.22s;
+    text-decoration: none;
+    border: 1.5px solid transparent;
+    white-space: nowrap;
+    line-height: 1;
+  }
+  .btn:focus-visible {
+    outline: 2px solid var(--color-action);
+    outline-offset: 2px;
+  }
+
+  .btn-sm  { font-size: 0.84375rem; padding: 0.5625rem 1.25rem; }
+  .btn-md  { font-size: 0.875rem;   padding: 0.625rem 1.25rem; }
+  .btn-lg  { font-size: 0.9375rem;  padding: 0.9375rem 2rem; border-radius: 0.875rem; }
+
+  /* CTA principal — naranja (80% dominante) */
+  .btn-primary {
+    background-color: var(--color-action);
+    color: #ffffff;
+    border-color: var(--color-action);
+    box-shadow: 0 4px 20px rgba(241, 98, 39, 0.3);
+  }
+  .btn-primary:hover {
+    background-color: var(--color-action-hover);
+    border-color: var(--color-action-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(241, 98, 39, 0.35);
+  }
+
+  .btn-outline {
+    background-color: transparent;
+    color: var(--color-ink-80);
+    border-color: var(--color-ink-20);
+  }
+  .btn-outline:hover {
+    border-color: var(--color-ink-80);
+    color: var(--color-ink);
+  }
+
+  /* ── Card ────────────────────────────────────────────────────── */
+  .card {
+    background-color: var(--color-surface);
+    border: 1.5px solid var(--color-gray-200);
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+  }
+  .card-hover {
+    transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+  }
+  .card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--color-action);
   }
 }
 
-body {
+/* ── Global base ────────────────────────────────────────────────── */
+html, body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+body {
+  font-family: var(--font-body), sans-serif;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+h1, h2, h3, h4, h5, h6, .font-display {
+  font-family: var(--font-display), serif;
+}
+a { text-decoration: none; color: inherit; }
+
+/* ── Focus visible — global accessible ring ─────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--color-brand-orange);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ── Scroll reveal — progressive enhancement ────────────────────── */
+/*
+ * [data-js] is set directly on <html> in layout.tsx (SSR).
+ * App Router always requires JS, so there is no no-JS case to handle.
+ */
+[data-js] .reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+[data-js] .reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ── prefers-reduced-motion — disable all movement ──────────────── */
+@media (prefers-reduced-motion: reduce) {
+  [data-js] .reveal,
+  [data-js] .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
