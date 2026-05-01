@@ -71,7 +71,7 @@ export default function Footer() {
               <Link
                 key={l.label}
                 href={l.href}
-                className="text-[12.5px] text-white hover:text-white/50 transition-colors"
+                className="text-[12.5px] text-[rgba(255,255,255,0.45)] hover:text-[#ffffff] transition-colors"
               >
                 {l.label}
               </Link>
@@ -87,7 +87,7 @@ export default function Footer() {
 function FooterCol({ title, links }: { title: string; links: FooterLink[] }) {
   return (
     <div>
-      <h4 className="text-[11px] font-bold tracking-[0.12em] uppercase text-white mb-[18px]">
+      <h4 className="text-[11px] font-bold tracking-[0.12em] uppercase text-[rgba(255,255,255,0.85)] mb-[18px]">
         {title}
       </h4>
       <ul className="list-none space-y-[11px] m-0 p-0">
@@ -95,7 +95,7 @@ function FooterCol({ title, links }: { title: string; links: FooterLink[] }) {
           <li key={link.label}>
             <Link
               href={link.href}
-              className="text-[13.5px] text-white/40 hover:text-white/80 transition-colors duration-200"
+              className="text-[13.5px] text-[rgba(255,255,255,0.55)] hover:text-[#ffffff] transition-colors duration-200"
             >
               {link.label}
             </Link>

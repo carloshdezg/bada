@@ -5,7 +5,7 @@ import { ArrowRight } from 'lucide-react'
 import Navbar   from '@/components/layout/Navbar'
 import Footer   from '@/components/layout/Footer'
 import { waUrl } from '@/lib/whatsapp'
-import { CheckIcon } from '@/components/icons'
+
 import ServiciosCards      from './_cards'
 import ServiciosComparison from './_comparison'
 
@@ -20,9 +20,9 @@ const BLUR_DATA_URL =
   'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPjxyZWN0IHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9IiNGRUYwRUEiLz48L3N2Zz4='
 
 const HERO_BULLETS = [
-  'Recolección programada y tiempos de entrega definidos',
-  'Cobertura en los 32 estados de la República',
-  'Ejecutivo asignado desde el primer contacto',
+  'Mensajería y paquetería para envíos regulares o urgentes',
+  'Rutas dedicadas y logística para operaciones más complejas',
+  'Flujos especializados para distribución y e-commerce',
 ]
 
 const HERO_SERVICES = [
@@ -89,20 +89,22 @@ export default function ServiciosPage() {
                 </h1>
 
                 <p className="text-[17px] text-ink-50 font-light leading-[1.75] mb-8 max-w-[540px]">
-                  En BADA ofrecemos soluciones de mensajería, paquetería, rutas dedicadas, logística
-                  y envíos para e-commerce, pensadas para empresas que necesitan recolectar, distribuir,
-                  documentar y gestionar sus envíos con mayor control.
+                  No todas las operaciones son iguales. Tenemos cinco servicios distintos para cubrir
+                  cada tipo de necesidad: desde un envío urgente hasta la gestión completa
+                  de tu distribución.
                 </p>
 
-                {/* Trust bullets */}
-                <div className="flex flex-col gap-[10px] mb-[38px]">
-                  {HERO_BULLETS.map(bullet => (
-                    <div key={bullet} className="flex items-center gap-[10px]">
+                {/* Service-area bullets — numbered, signals "choose one" not "brand promise" */}
+                <div className="flex flex-col gap-[12px] mb-[38px]">
+                  {HERO_BULLETS.map((bullet, i) => (
+                    <div key={bullet} className="flex items-start gap-[12px]">
                       <div
-                        className="w-[22px] h-[22px] rounded-full bg-success-bg border border-green-300
-                                   flex items-center justify-center text-success flex-shrink-0"
+                        className="w-[22px] h-[22px] rounded-full bg-brand-orange-50 border border-brand-orange-100
+                                   flex items-center justify-center text-brand-orange text-[11px] font-bold
+                                   flex-shrink-0 mt-[2px]"
+                        aria-hidden="true"
                       >
-                        <CheckIcon size={11} className="" />
+                        {i + 1}
                       </div>
                       <span className="text-[14px] font-medium text-ink-80">{bullet}</span>
                     </div>
@@ -269,10 +271,10 @@ export default function ServiciosPage() {
                 rel="noopener noreferrer"
                 aria-label="Hablar con un asesor por WhatsApp (abre en nueva pestaña)"
                 className="inline-flex items-center gap-[10px]
-                           text-[15px] font-bold text-white
+                           text-[15px] font-bold text-[#ffffff]
                            px-[34px] py-4 rounded-[14px]
-                           border-2 border-white/40
-                           hover:bg-white/10 hover:-translate-y-px
+                           border-2 border-[rgba(255,255,255,.45)]
+                           hover:bg-[rgba(255,255,255,.10)] hover:border-[rgba(255,255,255,.65)] hover:-translate-y-px
                            transition-all duration-[250ms]"
               >
                 Hablar con un asesor

@@ -95,8 +95,8 @@ function StatusBadge({ status }: { status: Status }) {
   const { label, classes } = STATUS_CONFIG[status]
   return (
     <span
-      className={`inline-flex items-center gap-[6px] text-[12px] font-semibold
-                  px-[12px] py-[6px] rounded-[8px] border whitespace-nowrap ${classes}`}
+      className={`inline-flex items-center gap-[6px] text-[12.5px] font-semibold
+                  px-[12px] py-[7px] rounded-[8px] border whitespace-nowrap ${classes}`}
     >
       <span className="w-[5px] h-[5px] rounded-full bg-current flex-shrink-0" aria-hidden="true" />
       {label}
@@ -164,7 +164,7 @@ export default function ServiciosComparison() {
                   <tr>
                     <td
                       colSpan={6}
-                      className="px-6 py-[10px] text-[11px] font-bold tracking-[0.10em] uppercase
+                      className="px-6 py-[12px] text-[11px] font-bold tracking-[0.10em] uppercase
                                  text-brand-orange bg-brand-orange-50 border-y border-brand-orange-100"
                     >
                       {cat.title}
@@ -255,7 +255,7 @@ export default function ServiciosComparison() {
                       <div key={cat.title}>
                         {/* Category label */}
                         <div
-                          className="px-5 py-[9px] text-[10.5px] font-bold tracking-[0.10em] uppercase
+                          className="px-5 py-[11px] text-[11px] font-bold tracking-[0.10em] uppercase
                                      text-brand-orange bg-brand-orange-50 border-b border-brand-orange-100"
                         >
                           {cat.title}

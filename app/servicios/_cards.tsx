@@ -143,33 +143,33 @@ function ServiceCard({ service, index, highlighted }: CardProps) {
         </h3>
 
         {/* Description */}
-        <p className="text-[14px] text-ink-50 leading-[1.7] mb-6">
+        <p className="text-[14px] text-ink-80 leading-[1.7] mb-6">
           {service.desc}
         </p>
 
         {/* Meta rows */}
         <div className="flex flex-col gap-4 mb-7 flex-1">
           <div>
-            <p className="text-[10.5px] font-semibold tracking-[0.09em] uppercase text-ink-50 mb-[5px]">
+            <p className="text-[11px] font-semibold tracking-[0.09em] uppercase text-ink-50 mb-[5px]">
               Ideal para
             </p>
-            <p className="text-[13.5px] text-ink-80 font-light leading-[1.55]">{service.idealPara}</p>
+            <p className="text-[14px] text-ink-80 font-light leading-[1.55]">{service.idealPara}</p>
           </div>
           <div>
-            <p className="text-[10.5px] font-semibold tracking-[0.09em] uppercase text-ink-50 mb-[5px]">
+            <p className="text-[11px] font-semibold tracking-[0.09em] uppercase text-ink-50 mb-[5px]">
               Mejor si necesitas
             </p>
-            <p className="text-[13.5px] text-ink-80 font-light leading-[1.55]">{service.mejorSi}</p>
+            <p className="text-[14px] text-ink-80 font-light leading-[1.55]">{service.mejorSi}</p>
           </div>
         </div>
 
         {/* CTA — inline text link style matching homepage cards */}
         <div
-          className={`inline-flex items-center gap-[6px] text-[13.5px] font-bold
-                      transition-all duration-200 group-hover:gap-[10px] ${accentText}`}
+          className="inline-flex items-center gap-[6px] text-[14px] font-bold text-ink
+                     transition-all duration-200 group-hover:gap-[10px]"
         >
           Ver detalles
-          <ArrowRight className="w-[13px] h-[13px]" aria-hidden="true" />
+          <ArrowRight className={`w-[13px] h-[13px] ${accentText}`} aria-hidden="true" />
         </div>
 
       </div>
