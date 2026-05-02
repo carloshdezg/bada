@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import type { PackageData, AddressData, MockResult, QuoteStep } from '@/types/quote'
 import { computeMockResult } from '@/lib/quote-utils'
 
@@ -13,30 +13,25 @@ interface Saved {
 
 const SESSION_KEY = 'bada_quote_v1'
 
+function readSaved(): Partial<Saved> {
+  if (typeof window === 'undefined') return {}
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY)
+    if (!raw) return {}
+    return JSON.parse(raw) as Saved
+  } catch {
+    return {}
+  }
+}
+
 export function useQuoteFlow() {
-  const [step,        setStep]       = useState<QuoteStep>(1)
-  const [packageData, setPackageData] = useState<PackageData | null>(null)
-  const [addressData, setAddressData] = useState<AddressData | null>(null)
-  const [mockResult,  setMockResult]  = useState<MockResult  | null>(null)
-  const hydrated = useRef(false)
+  const [step,        setStep]       = useState<QuoteStep>(() => readSaved().step        ?? 1)
+  const [packageData, setPackageData] = useState<PackageData | null>(() => readSaved().packageData ?? null)
+  const [addressData, setAddressData] = useState<AddressData | null>(() => readSaved().addressData ?? null)
+  const [mockResult,  setMockResult]  = useState<MockResult  | null>(() => readSaved().mockResult  ?? null)
 
-  // Restore from sessionStorage on first mount
+  // Persist to sessionStorage on every state change
   useEffect(() => {
-    try {
-      const raw = sessionStorage.getItem(SESSION_KEY)
-      if (!raw) return
-      const saved: Saved = JSON.parse(raw)
-      if (saved.step)        setStep(saved.step)
-      if (saved.packageData) setPackageData(saved.packageData)
-      if (saved.addressData) setAddressData(saved.addressData)
-      if (saved.mockResult)  setMockResult(saved.mockResult)
-    } catch { /* ignore parse errors */ }
-    hydrated.current = true
-  }, [])
-
-  // Persist to sessionStorage on every change (after hydration)
-  useEffect(() => {
-    if (!hydrated.current) return
     try {
       const payload: Saved = { step, packageData, addressData, mockResult }
       sessionStorage.setItem(SESSION_KEY, JSON.stringify(payload))

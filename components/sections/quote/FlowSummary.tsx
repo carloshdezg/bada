@@ -4,7 +4,6 @@ import type { PackageData, AddressData, MockResult, QuoteStep } from '@/types/qu
 import { MEXICO_STATES } from '@/lib/mexico-states'
 
 interface Props {
-  step:        QuoteStep
   packageData: PackageData | null
   addressData: AddressData | null
   mockResult:  MockResult  | null
@@ -15,7 +14,7 @@ function stateLabel(value: string) {
   return MEXICO_STATES.find(s => s.value === value)?.label ?? value
 }
 
-export default function FlowSummary({ step, packageData, addressData, mockResult, onEdit }: Props) {
+export default function FlowSummary({ packageData, addressData, mockResult, onEdit }: Props) {
   const hasPackage = !!packageData
   const hasAddress = !!addressData
 

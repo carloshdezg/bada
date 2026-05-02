@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Mail, Package, Truck, Layers, ShoppingCart, ArrowRight, MessageCircle } from 'lucide-react'
@@ -59,7 +59,7 @@ export default function PackageStep({ defaultValues, onSubmit }: Props) {
     defaultValues?.service ?? null
   )
 
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<PackageFormValues>({
+  const { register, handleSubmit, control, formState: { errors } } = useForm<PackageFormValues>({
     resolver: zodResolver(packageSchema),
     defaultValues: {
       peso:  defaultValues?.peso  ?? ('' as unknown as number),
@@ -69,10 +69,10 @@ export default function PackageStep({ defaultValues, onSubmit }: Props) {
     },
   })
 
-  const largo = watch('largo')
-  const ancho = watch('ancho')
-  const alto  = watch('alto')
-  const peso  = watch('peso')
+  const largo = useWatch({ control, name: 'largo' })
+  const ancho = useWatch({ control, name: 'ancho' })
+  const alto  = useWatch({ control, name: 'alto' })
+  const peso  = useWatch({ control, name: 'peso' })
 
   const pesoVolumetrico =
     largo && ancho && alto && !isNaN(largo) && !isNaN(ancho) && !isNaN(alto)

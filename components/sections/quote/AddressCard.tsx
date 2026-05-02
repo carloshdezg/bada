@@ -184,8 +184,6 @@ export default function AddressCard({
     transition: { duration: rm ? 0 : 0.18 },
   }
 
-  const { ref: origenEstadoRef, ...origenEstadoRest } = register('origen.estado')
-
   return (
     <div
       className={[

@@ -153,7 +153,6 @@ export default function QuoteFlow() {
 
         {/* ── Summary column (desktop only) ─────────────── */}
         <FlowSummary
-          step={step}
           packageData={packageData}
           addressData={addressData}
           mockResult={mockResult}

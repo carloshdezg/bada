@@ -1,6 +1,6 @@
 'use client'
 
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { ArrowRight, ArrowLeft, CheckCircle, AlertCircle, XCircle } from 'lucide-react'
@@ -33,7 +33,7 @@ interface Props {
 }
 
 export default function RouteStep({ packageValues, defaultValues, pesoCobrable, onSubmit, onBack }: Props) {
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<RouteValues>({
+  const { register, handleSubmit, control, formState: { errors } } = useForm<RouteValues>({
     resolver: zodResolver(routeSchema),
     defaultValues: {
       originCp:      defaultValues?.originCp      ?? '',
@@ -41,8 +41,8 @@ export default function RouteStep({ packageValues, defaultValues, pesoCobrable, 
     },
   })
 
-  const destinationCp = watch('destinationCp')
-  const originCp      = watch('originCp')
+  const destinationCp = useWatch({ control, name: 'destinationCp' })
+  const originCp      = useWatch({ control, name: 'originCp' })
 
   const matchedRoute = destinationCp?.length === 5 && /^\d{5}$/.test(destinationCp)
     ? findRouteByPostalCode(originCp ?? '', destinationCp)
