@@ -29,7 +29,7 @@ const SERVICES = [
   {
     label:    'Logística',
     desc:     'Almacén, picking y distribución',
-    href:     '/servicios',   // TODO: change to /servicios/logistica when page exists
+    href:     '/servicios/logistica',
     icon:     LayoutGrid,
   },
   {

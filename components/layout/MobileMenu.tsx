@@ -9,7 +9,7 @@ const SERVICES = [
   { label: 'Mensajería',      href: '/servicios/mensajeria' },
   { label: 'Paquetería',      href: '/servicios' },   // TODO: /servicios/paqueteria
   { label: 'Rutas Dedicadas', href: '/servicios/rutas-dedicadas' },
-  { label: 'Logística',       href: '/servicios' },   // TODO: /servicios/logistica
+  { label: 'Logística',       href: '/servicios/logistica' },
   { label: 'E-commerce',      href: '/servicios' },   // TODO: /servicios/ecommerce
 ] as const
 

@@ -96,7 +96,7 @@ const RELACIONADOS = [
     name:  'Logística',
     tag:   'Distribución especializada',
     desc:  'Soluciones operativas a la medida para negocios con necesidades más complejas.',
-    href:  '/servicios',   // TODO: change to /servicios/logistica when page exists
+    href:  '/servicios/logistica',
     color: 'orange' as const,
   },
   {
@@ -407,9 +407,9 @@ export default function PaqueteriaPage() {
                     <span className="text-[14px] text-ink-50 flex-shrink-0 mt-[1px]" aria-hidden="true">—</span>
                     <span className="text-[14px] text-ink-80 font-light leading-[1.6]">
                       Si necesitas una operación completa para tu negocio, revisa{' '}
-                      <Link href="/servicios" className="underline underline-offset-2 hover:text-ink transition-colors">
+                      <Link href="/servicios/logistica" className="underline underline-offset-2 hover:text-ink transition-colors">
                         Logística
-                      </Link>.{/* TODO: update href to /servicios/logistica when page exists */}
+                      </Link>.
                     </span>
                   </li>
                   <li className="flex items-start gap-[10px]">

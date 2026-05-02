@@ -1,79 +1,80 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight, Check, AlertCircle } from 'lucide-react'
-import Navbar            from '@/components/layout/Navbar'
-import Footer            from '@/components/layout/Footer'
-import { waUrl }         from '@/lib/whatsapp'
-import TruckIcon         from '@/components/icons/TruckIcon'
-import MapPinIcon        from '@/components/icons/MapPinIcon'
-import ShieldIcon        from '@/components/icons/ShieldIcon'
-import BuildingIcon      from '@/components/icons/BuildingIcon'
-import ChatIcon          from '@/components/icons/ChatIcon'
-import PackageIcon       from '@/components/icons/PackageIcon'
-import RutasDedicadasFaq from './_faq'
+import Navbar        from '@/components/layout/Navbar'
+import Footer        from '@/components/layout/Footer'
+import { waUrl }     from '@/lib/whatsapp'
+import TrendingUpIcon from '@/components/icons/TrendingUpIcon'
+import BuildingIcon  from '@/components/icons/BuildingIcon'
+import ShieldIcon    from '@/components/icons/ShieldIcon'
+import ChatIcon      from '@/components/icons/ChatIcon'
+import MapPinIcon    from '@/components/icons/MapPinIcon'
+import PackageIcon   from '@/components/icons/PackageIcon'
+import BoltIcon      from '@/components/icons/BoltIcon'
+import LogisticaFaq  from './_faq'
 
 export const metadata: Metadata = {
-  title: 'Rutas Dedicadas — Servicios logísticos',
+  title: 'Logística — Servicios logísticos',
   description:
-    'Servicio para coordinar rutas o unidades dedicadas según las necesidades de tu operación, ' +
-    'frecuencia, cobertura y condiciones logísticas. Validación con asesor.',
+    'Servicio para revisar necesidades logísticas más amplias, coordinar procesos de envío ' +
+    'y orientar la mejor solución según cobertura, operación y condiciones disponibles.',
 }
 
 // ── Feature cards — diferenciadores ──────────────────────────────────
 const FEATURES: { icon: React.ReactNode; title: string; body: string }[] = [
   {
-    icon:  <MapPinIcon   primary="orange" size={32} />,
-    title: 'Planeación por ruta',
-    body:  'Cada operación se revisa según origen, destino, frecuencia, volumen y condiciones necesarias para la ruta.',
+    icon:  <TrendingUpIcon primary="orange" size={32} />,
+    title: 'Diagnóstico operativo',
+    body:  'Primero se entiende la necesidad: tipo de envío, frecuencia, rutas, volumen y condiciones de operación.',
   },
   {
-    icon:  <TruckIcon    primary="orange" size={32} />,
-    title: 'Mayor control operativo',
-    body:  'Pensado para empresas que necesitan coordinar recorridos o entregas con más control que un envío estándar.',
+    icon:  <BuildingIcon   primary="orange" size={32} />,
+    title: 'Solución orientada al caso',
+    body:  'La recomendación puede integrar diferentes servicios según lo que realmente necesita tu operación.',
   },
   {
-    icon:  <ShieldIcon   primary="orange" size={32} />,
-    title: 'Validación antes de confirmar',
-    body:  'La disponibilidad se revisa con un asesor para definir si la ruta puede cubrirse y bajo qué condiciones.',
+    icon:  <ShieldIcon     primary="orange" size={32} />,
+    title: 'Validación antes de prometer',
+    body:  'La cobertura, disponibilidad y condiciones se revisan antes de confirmar cualquier solución.',
   },
   {
-    icon:  <BuildingIcon primary="orange" size={32} />,
-    title: 'Solución adaptable',
-    body:  'El servicio puede ajustarse a operaciones recurrentes, rutas específicas o necesidades logísticas particulares.',
+    icon:  <ChatIcon       primary="orange" size={32} />,
+    title: 'Acompañamiento de asesor',
+    body:  'Un asesor puede ayudarte a ordenar la información y definir el mejor camino logístico.',
   },
 ]
 
 // ── Qué incluye — confirmado ──────────────────────────────────────────
 const INCLUYE_CONFIRMED = [
-  'Revisión de la necesidad operativa.',
-  'Validación de origen, destino y cobertura.',
-  'Evaluación de frecuencia, volumen y condiciones.',
-  'Posibilidad de ruta o unidad dedicada según disponibilidad.',
-  'Acompañamiento de asesor para definir la mejor opción.',
-  'Coordinación previa antes de confirmar el servicio.',
-  'Propuesta sujeta a condiciones operativas.',
+  'Revisión de necesidades logísticas.',
+  'Análisis de origen, destino, frecuencia y volumen.',
+  'Orientación sobre el servicio más adecuado.',
+  'Evaluación de cobertura y condiciones disponibles.',
+  'Posibilidad de combinar servicios según el caso.',
+  'Acompañamiento de asesor antes de confirmar.',
+  'Propuesta sujeta a validación operativa.',
 ]
 
 // ── Debe validarse con asesor ─────────────────────────────────────────
 const INCLUYE_VALIDACION = [
-  'Disponibilidad de ruta o unidad.',
-  'Frecuencia requerida.',
-  'Volumen aproximado de envíos.',
-  'Puntos de recolección y entrega.',
-  'Horarios o ventanas operativas.',
+  'Tipo de operación o necesidad logística.',
+  'Frecuencia y volumen aproximado.',
+  'Rutas, zonas o puntos involucrados.',
   'Condiciones especiales de manejo.',
-  'Alcance y cobertura de la operación.',
+  'Requerimientos de coordinación.',
+  'Disponibilidad operativa.',
+  'Alcance real de la solución.',
 ]
 
 // ── Checklist de asesoría ─────────────────────────────────────────────
 const ASESORIA_CHECKS = [
-  'Origen y destino de la operación.',
-  'Frecuencia estimada de la ruta.',
-  'Volumen aproximado de paquetes o entregas.',
   'Tipo de mercancía o envío.',
-  'Horarios o ventanas de operación.',
-  'Puntos de recolección y entrega.',
-  'Necesidades especiales de manejo o coordinación.',
+  'Origen y destino de la operación.',
+  'Frecuencia estimada.',
+  'Volumen aproximado.',
+  'Zonas o rutas involucradas.',
+  'Condiciones especiales de manejo.',
+  'Objetivo principal de la operación.',
 ]
 
 // ── Servicios relacionados ────────────────────────────────────────────
@@ -95,11 +96,11 @@ const RELACIONADOS = [
     color: 'blue' as const,
   },
   {
-    id:    'logistica',
-    name:  'Logística',
-    tag:   'Distribución especializada',
-    desc:  'Soluciones operativas a la medida para negocios con necesidades más complejas.',
-    href:  '/servicios/logistica',
+    id:    'rutas-dedicadas',
+    name:  'Rutas Dedicadas',
+    tag:   'Unidades exclusivas',
+    desc:  'Unidades o rutas exclusivas para operaciones recurrentes o especiales.',
+    href:  '/servicios/rutas-dedicadas',
     color: 'orange' as const,
   },
   {
@@ -112,7 +113,7 @@ const RELACIONADOS = [
   },
 ]
 
-export default function RutasDedicadasPage() {
+export default function LogisticaPage() {
   return (
     <>
       <Navbar />
@@ -122,11 +123,11 @@ export default function RutasDedicadasPage() {
         {/* ── Hero ─────────────────────────────────────────────────── */}
         <section className="relative overflow-hidden bg-white">
 
-          {/* Orange radial — top right */}
+          {/* Teal radial — top right */}
           <div
             aria-hidden="true"
             className="pointer-events-none absolute -top-[60px] -right-[80px] w-[620px] h-[620px] rounded-full"
-            style={{ background: 'radial-gradient(circle, #FEF0EA 0%, transparent 70%)' }}
+            style={{ background: 'radial-gradient(circle, #E8F7FA 0%, transparent 70%)' }}
           />
           {/* Gray radial — bottom left */}
           <div
@@ -153,7 +154,7 @@ export default function RutasDedicadasPage() {
                   </Link>
                 </li>
                 <li aria-hidden="true" className="text-ink-20 select-none">/</li>
-                <li className="text-ink">Rutas Dedicadas</li>
+                <li className="text-ink">Logística</li>
               </ol>
             </nav>
 
@@ -166,22 +167,23 @@ export default function RutasDedicadasPage() {
                   className="w-2 h-2 rounded-full bg-brand-orange flex-shrink-0"
                   aria-hidden="true"
                 />
-                Rutas Dedicadas · BADA
+                Logística · BADA
               </div>
 
               <h1
                 className="font-display font-black leading-[1.04] tracking-[-0.025em] text-ink mb-6"
                 style={{ fontSize: 'clamp(52px, 6.2vw, 80px)' }}
               >
-                Rutas dedicadas,{' '}
+                Soluciones logísticas{' '}
                 <em className="text-brand-orange" style={{ fontStyle: 'italic' }}>
-                  para operaciones que necesitan control propio.
+                  para operaciones que necesitan más que un envío.
                 </em>
               </h1>
 
               <p className="text-[17px] text-ink-50 font-light leading-[1.75] mb-8 max-w-[560px]">
-                Servicio para coordinar rutas o unidades dedicadas según las necesidades de tu
-                operación, frecuencia, cobertura y condiciones logísticas.
+                Servicio para revisar necesidades logísticas más amplias, coordinar procesos de
+                envío y orientar la mejor solución según cobertura, operación y condiciones
+                disponibles.
               </p>
 
               {/* CTAs */}
@@ -224,18 +226,18 @@ export default function RutasDedicadasPage() {
               <div
                 className="relative h-[360px] sm:h-[420px] rounded-[24px] overflow-hidden"
                 style={{
-                  background: 'linear-gradient(135deg, #1A2B3C 0%, #2D3E50 40%, #F16227 100%)',
+                  background: 'linear-gradient(135deg, #14A3BE 0%, #0D7A90 40%, #1A2B3C 100%)',
                 }}
                 aria-hidden="true"
               >
                 <div
                   className="absolute inset-0"
                   style={{
-                    background: 'radial-gradient(ellipse at 30% 60%, rgba(255,255,255,0.07) 0%, transparent 55%)',
+                    background: 'radial-gradient(ellipse at 20% 40%, rgba(255,255,255,0.08) 0%, transparent 55%)',
                   }}
                 />
                 <div className="absolute bottom-8 left-8 opacity-[0.15]">
-                  <TruckIcon primary="orange" size={96} />
+                  <BuildingIcon primary="orange" size={96} />
                 </div>
               </div>
 
@@ -245,17 +247,17 @@ export default function RutasDedicadasPage() {
                                 shadow-[0_8px_32px_rgba(15,25,35,0.12)]">
                   <div
                     className="absolute top-0 left-0 right-0 h-[3px] rounded-t-[20px]"
-                    style={{ background: 'linear-gradient(90deg, #1A2B3C 0%, #F16227 100%)' }}
+                    style={{ background: 'linear-gradient(90deg, #14A3BE 0%, #F16227 100%)' }}
                     aria-hidden="true"
                   />
                   <p className="text-[12px] font-bold tracking-[0.1em] uppercase text-ink-50 mb-4">
-                    Rutas Dedicadas · BADA
+                    Logística · BADA
                   </p>
                   <div className="flex flex-col gap-[10px]">
                     {[
-                      'Ruta o unidad dedicada',
-                      'Operaciones recurrentes',
-                      'Validación con asesor',
+                      'Soluciones a la medida',
+                      'Coordinación operativa',
+                      'Revisión con asesor',
                       'Cobertura según condiciones',
                     ].map(item => (
                       <div key={item} className="flex items-center gap-3">
@@ -283,7 +285,7 @@ export default function RutasDedicadasPage() {
                 className="font-display font-black text-ink tracking-[-0.025em]"
                 style={{ fontSize: 'clamp(32px, 4vw, 50px)', lineHeight: '1.06' }}
               >
-                ¿Rutas Dedicadas es lo que necesitas?
+                ¿Logística es lo que necesitas?
               </h2>
             </div>
 
@@ -302,21 +304,21 @@ export default function RutasDedicadasPage() {
                 </div>
                 <div className="w-[52px] h-[52px] rounded-[14px] bg-[rgba(241,98,39,0.10)]
                                 flex items-center justify-center mb-5 flex-shrink-0">
-                  <TruckIcon primary="orange" size={32} />
+                  <BoltIcon primary="orange" size={32} />
                 </div>
                 <h3 className="font-display font-black text-[20px] text-ink
                                leading-[1.15] tracking-[-0.02em] mb-3">
                   Ideal para
                 </h3>
                 <p className="text-[14px] text-ink-50 font-light leading-[1.6] mb-4">
-                  Operaciones que necesitan una ruta o unidad dedicada, con mayor control que un envío individual.
+                  Negocios que necesitan revisar una operación más amplia que un envío individual.
                 </p>
                 <ul className="flex flex-col gap-3 list-none p-0 m-0">
                   {[
-                    'Entregas recurrentes o programadas.',
-                    'Operaciones con puntos de entrega definidos.',
-                    'Empresas que requieren continuidad en sus rutas.',
-                    'Necesidades logísticas que no encajan en paquetería estándar.',
+                    'Operaciones con necesidades logísticas recurrentes.',
+                    'Empresas con distintos tipos de envío o rutas.',
+                    'Procesos que requieren coordinación previa.',
+                    'Casos que no encajan en mensajería o paquetería estándar.',
                   ].map(item => (
                     <li key={item} className="flex items-start gap-[10px]">
                       <Check className="w-[14px] h-[14px] text-brand-orange flex-shrink-0 mt-[3px]" aria-hidden="true" />
@@ -346,14 +348,14 @@ export default function RutasDedicadasPage() {
                   Mejor si necesitas
                 </h3>
                 <p className="text-[14px] text-ink-50 font-light leading-[1.6] mb-4">
-                  Coordinar una operación específica con validación previa de cobertura, frecuencia, volumen y condiciones.
+                  Analizar tu operación con un asesor para definir la solución logística más adecuada.
                 </p>
                 <ul className="flex flex-col gap-3 list-none p-0 m-0">
                   {[
-                    'Revisar una ruta fija o recurrente.',
-                    'Planear una unidad o recorrido exclusivo.',
-                    'Coordinar entregas con mayor control operativo.',
-                    'Hablar con un asesor antes de confirmar el servicio.',
+                    'Revisar cobertura, frecuencia y volumen.',
+                    'Coordinar necesidades de envío más complejas.',
+                    'Evaluar rutas, servicios o procesos combinados.',
+                    'Recibir orientación antes de confirmar una solución.',
                   ].map(item => (
                     <li key={item} className="flex items-start gap-[10px]">
                       <Check className="w-[14px] h-[14px] text-brand-blue flex-shrink-0 mt-[3px]" aria-hidden="true" />
@@ -383,7 +385,7 @@ export default function RutasDedicadasPage() {
                   Considera otro si
                 </h3>
                 <p className="text-[14px] text-ink-50 font-light leading-[1.6] mb-4">
-                  Tu envío puede resolverse con una opción más simple.
+                  Tu necesidad puede resolverse con un servicio más específico.
                 </p>
                 <ul className="flex flex-col gap-3 list-none p-0 m-0">
                   <li className="flex items-start gap-[10px]">
@@ -407,9 +409,9 @@ export default function RutasDedicadasPage() {
                   <li className="flex items-start gap-[10px]">
                     <span className="text-[14px] text-ink-50 flex-shrink-0 mt-[1px]" aria-hidden="true">—</span>
                     <span className="text-[14px] text-ink-80 font-light leading-[1.6]">
-                      Si necesitas una solución operativa completa, revisa{' '}
-                      <Link href="/servicios/logistica" className="underline underline-offset-2 hover:text-ink transition-colors">
-                        Logística
+                      Si necesitas una ruta o unidad dedicada, revisa{' '}
+                      <Link href="/servicios/rutas-dedicadas" className="underline underline-offset-2 hover:text-ink transition-colors">
+                        Rutas Dedicadas
                       </Link>.
                     </span>
                   </li>
@@ -438,11 +440,11 @@ export default function RutasDedicadasPage() {
                 className="font-display font-black text-ink tracking-[-0.025em] mb-4"
                 style={{ fontSize: 'clamp(34px, 4vw, 52px)', lineHeight: '1.06' }}
               >
-                Lo que hace diferente a Rutas Dedicadas BADA
+                Lo que hace diferente a Logística BADA
               </h2>
               <p className="text-[15px] text-ink-50 font-light leading-[1.75] max-w-[560px]">
-                Una solución para operaciones que requieren planeación, continuidad y validación
-                directa antes de confirmar una ruta.
+                Una forma de revisar operaciones más complejas con acompañamiento, cobertura
+                administrable y criterios claros antes de proponer una solución.
               </p>
             </div>
 
@@ -507,7 +509,7 @@ export default function RutasDedicadasPage() {
                 </ul>
               </div>
 
-              {/* Validación con asesor — blue accent (advisor service) */}
+              {/* Validación con asesor — blue accent */}
               <div className="rounded-[20px] p-8 border-[1.5px] border-brand-blue-100 bg-brand-blue-50">
                 <div className="flex items-center gap-3 mb-5">
                   <AlertCircle className="w-[18px] h-[18px] text-brand-blue flex-shrink-0" aria-hidden="true" />
@@ -516,8 +518,8 @@ export default function RutasDedicadasPage() {
                   </p>
                 </div>
                 <p className="text-[14px] text-ink-80 font-light leading-[1.75] mb-5">
-                  Rutas Dedicadas requiere revisión antes de confirmar precio, cobertura y
-                  condiciones del servicio.
+                  Logística requiere revisar el contexto de la operación antes de definir alcance,
+                  condiciones y posible solución.
                 </p>
                 <ul className="flex flex-col gap-4 list-none p-0 m-0">
                   {INCLUYE_VALIDACION.map(item => (
@@ -539,7 +541,7 @@ export default function RutasDedicadasPage() {
           </div>
         </section>
 
-        {/* ── Asesoría — información para evaluar tu ruta ─────────────── */}
+        {/* ── Asesoría — información para evaluar tu operación ────────── */}
         <section className="py-[96px] bg-gray-50 border-b border-gray-200">
           <div className="max-w-site mx-auto px-5 sm:px-7">
             <div className="mb-12">
@@ -548,12 +550,12 @@ export default function RutasDedicadasPage() {
                 className="font-display font-black text-ink tracking-[-0.025em] mb-4"
                 style={{ fontSize: 'clamp(34px, 4vw, 52px)', lineHeight: '1.06' }}
               >
-                Información que necesitamos para evaluar tu ruta
+                Información que necesitamos para evaluar tu operación
               </h2>
               <p className="text-[15px] text-ink-50 font-light leading-[1.75] max-w-[540px]">
-                Para revisar una ruta dedicada, un asesor necesita entender el origen, destino,
-                frecuencia, volumen y condiciones de la operación. Con esos datos se puede
-                orientar mejor la solución.
+                Para orientar una solución logística, un asesor necesita entender qué se mueve,
+                con qué frecuencia, hacia dónde y bajo qué condiciones. Con esa información se
+                puede proponer una opción más adecuada.
               </p>
             </div>
 
@@ -593,8 +595,8 @@ export default function RutasDedicadasPage() {
                     Cuéntanos sobre tu operación
                   </h3>
                   <p className="text-[14px] text-white/80 font-light leading-[1.75] mb-6">
-                    Comparte los datos generales de tu ruta para que un asesor pueda revisar
-                    disponibilidad, cobertura y condiciones operativas.
+                    Comparte los datos generales de tu necesidad logística para revisar
+                    cobertura, condiciones y la solución más conveniente.
                   </p>
                   <div className="flex flex-col gap-3">
                     <a
@@ -640,7 +642,7 @@ export default function RutasDedicadasPage() {
                 className="font-display font-black text-ink tracking-[-0.025em] mb-4"
                 style={{ fontSize: 'clamp(34px, 4vw, 52px)', lineHeight: '1.06' }}
               >
-                Respuestas sobre Rutas Dedicadas
+                Respuestas sobre Logística
               </h2>
               <p className="text-[15px] text-ink-50 font-light leading-[1.75] max-w-[500px]">
                 Si no encuentras lo que necesitas, tu asesor puede orientarte directamente.
@@ -648,7 +650,7 @@ export default function RutasDedicadasPage() {
             </div>
 
             <div className="max-w-[720px]">
-              <RutasDedicadasFaq />
+              <LogisticaFaq />
             </div>
           </div>
         </section>
@@ -722,7 +724,7 @@ export default function RutasDedicadasPage() {
             className="pointer-events-none absolute inset-0"
             style={{
               background:
-                'linear-gradient(135deg, rgba(241,98,39,.10) 0%, transparent 50%, rgba(20,163,190,.08) 100%)',
+                'linear-gradient(135deg, rgba(20,163,190,.10) 0%, transparent 50%, rgba(241,98,39,.08) 100%)',
             }}
           />
           <div
@@ -748,15 +750,15 @@ export default function RutasDedicadasPage() {
               className="font-display font-black text-white tracking-[-0.025em] leading-[1.05] mb-6"
               style={{ fontSize: 'clamp(38px, 5vw, 62px)' }}
             >
-              Revisa tu ruta con{' '}
+              Revisemos tu{' '}
               <em className="text-brand-orange" style={{ fontStyle: 'italic' }}>
-                un asesor.
+                operación logística.
               </em>
             </h2>
 
             <p className="text-[16px] text-white/55 font-light leading-[1.75] mb-12 max-w-[480px] mx-auto">
-              Cuéntanos origen, destino, frecuencia y condiciones de tu operación para evaluar
-              si una ruta dedicada es la mejor opción.
+              Cuéntanos qué necesitas mover, con qué frecuencia y bajo qué condiciones para
+              evaluar la solución más adecuada.
             </p>
 
             <div className="flex items-center justify-center gap-4 flex-wrap">
