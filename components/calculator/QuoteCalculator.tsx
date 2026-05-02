@@ -6,8 +6,7 @@ import { cn } from '@/lib/utils'
 import { waUrl } from '@/lib/whatsapp'
 import { calculatorConfig } from '@/lib/calculator/config'
 import { calculateQuote, type QuoteResult } from '@/lib/calculator/calculateQuote'
-import { findRouteByPostalCode, routeRequiresAdvisor } from '@/lib/calculator/seedRoutes'
-import { MEXICO_STATES } from '@/lib/mexico-states'
+import { findPlaceByPostalCode, findRouteByPostalCode, routeRequiresAdvisor } from '@/lib/calculator/seedRoutes'
 import type { ServiceId } from '@/lib/calculator/types'
 import QuoteProgress     from './QuoteProgress'
 import MobileQuoteSticky from './MobileQuoteSticky'
@@ -68,6 +67,31 @@ const INPUT_BASE =
 const INPUT_ERROR =
   'w-full h-[54px] border border-red-400 rounded-[14px] px-4 bg-white text-ink outline-none ' +
   'focus:border-red-400 focus:ring-4 focus:ring-red-400/10 transition-colors'
+
+// Read-only field that shows detected data (estado/ciudad from route lookup)
+function DetectedField({ value, notFound }: { value: string | null | undefined; notFound?: boolean }) {
+  return (
+    <div className={cn(
+      'w-full h-[54px] border rounded-[14px] px-4 flex items-center text-[15px]',
+      value
+        ? 'bg-[#F0FDF4] border-[rgba(22,163,74,.35)] text-ink'
+        : notFound
+          ? 'bg-[#FEF2F2] border-[rgba(220,38,38,.25)] text-red-600 text-[14px]'
+          : 'bg-[#F8FAFB] border-[#DDE3EA] text-ink-50'
+    )}>
+      {value ?? (notFound ? 'No encontrado' : '─')}
+    </div>
+  )
+}
+
+function SectionLabel({ children, sub }: { children: React.ReactNode; sub?: string }) {
+  return (
+    <div className="mb-3">
+      <span className="text-[11px] font-bold text-ink-50 uppercase tracking-[.10em]">{children}</span>
+      {sub && <span className="ml-2 text-[11px] text-ink-50 italic normal-case tracking-normal">{sub}</span>}
+    </div>
+  )
+}
 
 function Metric({
   label, value, highlight, muted,
@@ -131,17 +155,13 @@ function ResultRow({ label, value }: { label: string; value: string }) {
 // ─── main component ──────────────────────────────────────────────────────────
 
 interface FormState {
-  service:     ServiceId
-  peso:        string
-  largo:       string
-  ancho:       string
-  alto:        string
-  originState: string
-  originCity:  string
-  originCp:    string
-  destState:   string
-  destCity:    string
-  destCp:      string
+  service:  ServiceId
+  peso:     string
+  largo:    string
+  ancho:    string
+  alto:     string
+  originCp: string  // origin state/city detected from seedRoutes — not stored in form
+  destCp:   string  // destination state/city detected from seedRoutes — not stored in form
 }
 
 interface Props {
@@ -150,17 +170,13 @@ interface Props {
 
 export default function QuoteCalculator({ initialService }: Props) {
   const [form, setForm] = useState<FormState>({
-    service:     initialService ?? 'mensajeria',
-    peso:        '',
-    largo:       '',
-    ancho:       '',
-    alto:        '',
-    originState: '',
-    originCity:  '',
-    originCp:    '',
-    destState:   '',
-    destCity:    '',
-    destCp:      '',
+    service:  initialService ?? 'mensajeria',
+    peso:     '',
+    largo:    '',
+    ancho:    '',
+    alto:     '',
+    originCp: '',
+    destCp:   '',
   })
 
   function update(field: keyof FormState, value: string) {
@@ -192,9 +208,21 @@ export default function QuoteCalculator({ initialService }: Props) {
   const anchoExceeded = !isNaN(parsedAncho) && parsedAncho > 0 && parsedAncho > cfg.anchoMaximoCm
   const altoExceeded  = !isNaN(parsedAlto)  && parsedAlto  > 0 && parsedAlto  > cfg.altoMaximoCm
 
-  // ── route preview ─────────────────────────────────────────────────────────
-  const routeLookup   = hasDestCp ? findRouteByPostalCode(form.originCp, form.destCp) : undefined
-  const routeNeedsAdv = routeLookup !== undefined ? routeRequiresAdvisor(routeLookup) : undefined
+  // ── CP lookups — source of truth for both origin and destination ──────────
+  const hasOriginCp = /^\d{5}$/.test(form.originCp)
+
+  // Origin: place lookup only (display detection — no route validity check for origin)
+  const originRouteLookup  = hasOriginCp ? findPlaceByPostalCode(form.originCp) : undefined
+  const originCpNotFound   = hasOriginCp && originRouteLookup === undefined
+  const detectedOriginState = hasOriginCp ? (originRouteLookup?.estado    ?? null) : null
+  const detectedOriginCity  = hasOriginCp ? (originRouteLookup?.poblacion ?? null) : null
+
+  // Destination: full route lookup (coverage + validity)
+  const routeLookup        = hasDestCp ? findRouteByPostalCode(form.originCp, form.destCp) : undefined
+  const routeNeedsAdv      = routeLookup !== undefined ? routeRequiresAdvisor(routeLookup) : undefined
+  const destCpNotFound     = hasDestCp && routeLookup === undefined
+  const detectedDestState  = hasDestCp ? (routeLookup?.estado    ?? null) : null
+  const detectedDestCity   = hasDestCp ? (routeLookup?.poblacion ?? null) : null
 
   // ── advisor eligibility ────────────────────────────────────────────────────
   const serviceRequiresAdvisor =
@@ -209,19 +237,19 @@ export default function QuoteCalculator({ initialService }: Props) {
   const isStep1Complete = hasPackage
   const isStep1Valid    = isStep1Complete && !serviceRequiresAdvisor && !exceedsLimits
 
-  const isStep2FieldsComplete =
-    form.originState !== '' &&
-    form.originCity.trim() !== '' &&
-    /^\d{5}$/.test(form.originCp) &&
-    form.destState !== '' &&
-    form.destCity.trim() !== '' &&
-    hasDestCp
-  const isStep2Complete = isStep1Valid && isStep2FieldsComplete
-  const isStep2Valid    = isStep2Complete && routeLookup !== undefined && routeNeedsAdv === false
+  // Step 2: just both CPs entered — state/city are detected, not required from form
+  const isStep2FieldsComplete = isStep1Valid && hasOriginCp && hasDestCp
+  const isStep2Complete       = isStep2FieldsComplete
+  const isStep2Valid          =
+    isStep2Complete &&
+    originRouteLookup !== undefined &&
+    routeLookup !== undefined &&
+    routeNeedsAdv === false
 
   // ── full quote result ──────────────────────────────────────────────────────
   const calcResult: QuoteResult | null =
-    !serviceRequiresAdvisor && !exceedsLimits && hasPackage && hasDestCp
+    !serviceRequiresAdvisor && !exceedsLimits && !originCpNotFound &&
+    hasPackage && hasOriginCp && hasDestCp
       ? calculateQuote({
           service:       form.service,
           peso:          parsedPeso,
@@ -233,18 +261,21 @@ export default function QuoteCalculator({ initialService }: Props) {
         })
       : null
 
-  // Fires without destCp when advisor status is already determined from field data
-  const syntheticAdvisor: QuoteResult | null = serviceRequiresAdvisor || exceedsLimits
-    ? {
-        type: 'advisor',
-        reason: serviceRequiresAdvisor
-          ? 'service_requires_advisor'
-          : largoExceeded || anchoExceeded || altoExceeded
-            ? 'over_dimension'
-            : 'over_weight',
-        message: cfg.mensajeRequiereAsesor,
-      }
-    : null
+  // Fires without both CPs when advisor status is already determined
+  const syntheticAdvisor: QuoteResult | null =
+    serviceRequiresAdvisor || exceedsLimits || originCpNotFound
+      ? {
+          type: 'advisor',
+          reason: serviceRequiresAdvisor
+            ? 'service_requires_advisor'
+            : originCpNotFound
+              ? 'route_not_found'
+              : largoExceeded || anchoExceeded || altoExceeded
+                ? 'over_dimension'
+                : 'over_weight',
+          message: cfg.mensajeRequiereAsesor,
+        }
+      : null
 
   const result: QuoteResult | null = syntheticAdvisor ?? calcResult
 
@@ -256,7 +287,7 @@ export default function QuoteCalculator({ initialService }: Props) {
   const extraKgText = canQuoteAutomatically && rangeInfo && rangeInfo.extra > 0
     ? `${rangeInfo.extra} × $${cfg.precioKgAdicional.toFixed(2)}`
     : 'No aplica'
-  const tarifaType  = canQuoteAutomatically && result?.type === 'success' ? result.route.tipo_tarifa : '—'
+  const tarifaType = canQuoteAutomatically && result?.type === 'success' ? result.route.tipo_tarifa : '—'
 
   // ── WA message ────────────────────────────────────────────────────────────
   const quoteWAMsg =
@@ -264,7 +295,8 @@ export default function QuoteCalculator({ initialService }: Props) {
       ? `Hola, quiero confirmar el envío cotizado en badamensajeria.mx.\n\n` +
         `Servicio: ${SERVICE_OPTIONS.find(s => s.id === form.service)?.label}\n` +
         `Paquete: ${form.largo}×${form.ancho}×${form.alto} cm | ${form.peso} kg real\n` +
-        `CP Destino: ${form.destCp} (${result.route.poblacion}, ${result.route.estado})\n` +
+        `Origen: CP ${form.originCp}${detectedOriginCity ? ` · ${detectedOriginCity}` : ''}${detectedOriginState ? `, ${detectedOriginState}` : ''}\n` +
+        `Destino: CP ${form.destCp} (${result.route.poblacion}, ${result.route.estado})\n` +
         `Peso cobrable: ${result.pesoCobrable} kg\n` +
         `Total estimado: ${formatMXN(result.total)} MXN (IVA incluido)`
       : `Hola, quiero información sobre el servicio de ${SERVICE_OPTIONS.find(s => s.id === form.service)?.label ?? form.service} de Transportes BADA.`
@@ -272,9 +304,9 @@ export default function QuoteCalculator({ initialService }: Props) {
   return (
     <div>
       <QuoteProgress
-        step1={{ active: !isStep1Valid,                    done: isStep1Valid  }}
-        step2={{ active: isStep1Valid && !isStep2Valid,    done: isStep2Valid  }}
-        step3={{ active: isStep1Valid  && isStep2Valid,    done: false         }}
+        step1={{ active: !isStep1Valid,                 done: isStep1Valid }}
+        step2={{ active: isStep1Valid && !isStep2Valid, done: isStep2Valid }}
+        step3={{ active: isStep1Valid && isStep2Valid,  done: false        }}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_370px] gap-7 items-start">
@@ -362,9 +394,12 @@ export default function QuoteCalculator({ initialService }: Props) {
 
               {/* Mini calc — always visible for transparency */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-[14px] mt-6">
-                <Metric label="Peso real"        value={hasPeso ? `${parsedPeso} kg` : '─ kg'} />
-                <Metric label="Peso volumétrico" value={pesoVolumetrico !== null ? `${pesoVolumetrico.toFixed(1)} kg` : '─ kg'} />
-                <Metric label="Peso cobrable"    value={pesoCobrable !== null ? `${pesoCobrable} kg` : '─ kg'}
+                <Metric label="Peso real"
+                         value={hasPeso ? `${parsedPeso} kg` : '─ kg'} />
+                <Metric label="Peso volumétrico"
+                         value={pesoVolumetrico !== null ? `${pesoVolumetrico.toFixed(1)} kg` : '─ kg'} />
+                <Metric label="Peso cobrable"
+                         value={pesoCobrable !== null ? `${pesoCobrable} kg` : '─ kg'}
                          highlight={pesoCobrable !== null && !exceedsLimits} />
               </div>
 
@@ -373,7 +408,6 @@ export default function QuoteCalculator({ initialService }: Props) {
                 Peso volumétrico = largo × ancho × alto / {cfg.divisorVolumetrico}. El peso cobrable se redondea al kilo inmediato superior.
               </InfoBox>
 
-              {/* Per-service weight warnings */}
               {pesoCobrable !== null && form.service === 'mensajeria' && pesoCobrable > cfg.pesoMaxMensajeriaKg && (
                 <InfoBox variant="warn">
                   <strong>Requiere asesor:</strong>{' '}
@@ -397,7 +431,7 @@ export default function QuoteCalculator({ initialService }: Props) {
                 Origen y destino
               </h2>
               <p className="m-0 text-ink-50 text-[15px] leading-[1.6] max-w-[620px]">
-                La ruta se valida contra la cobertura administrable. Si no existe, está desactivada o requiere asesor, no se muestra precio automático.
+                Ingresa el código postal de destino para detectar cobertura, zona operativa y tarifa aplicable.
               </p>
             </div>
             <div className="p-[30px]">
@@ -407,109 +441,103 @@ export default function QuoteCalculator({ initialService }: Props) {
                 </LockedNotice>
               )}
 
-              <div className={cn(
-                'grid grid-cols-1 sm:grid-cols-3 gap-[18px]',
-                !isStep1Valid ? 'mt-5 opacity-50' : ''
-              )}>
-                {/* Origin */}
-                <div>
-                  <FieldLabel>Estado origen</FieldLabel>
-                  <select
-                    value={form.originState}
-                    onChange={e => update('originState', e.target.value)}
-                    className={INPUT_BASE + ' cursor-pointer'}
-                    disabled={!isStep1Valid}
-                  >
-                    <option value="">Seleccionar</option>
-                    {MEXICO_STATES.map(s => (
-                      <option key={s.value} value={s.value}>{s.label}</option>
-                    ))}
-                  </select>
+              {/* Origin — CP detected */}
+              <div className={cn(!isStep1Valid && 'mt-5')}>
+                <SectionLabel sub="datos detectados por código postal">Origen</SectionLabel>
+                <div className={cn(
+                  'grid grid-cols-1 sm:grid-cols-3 gap-[18px]',
+                  !isStep1Valid && 'opacity-50'
+                )}>
+                  <div>
+                    <FieldLabel>Código postal</FieldLabel>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={5}
+                      value={form.originCp}
+                      onChange={e => update('originCp', e.target.value.replace(/\D/g, '').slice(0, 5))}
+                      placeholder="00000"
+                      className={INPUT_BASE}
+                      disabled={!isStep1Valid}
+                    />
+                  </div>
+                  <div>
+                    <FieldLabel>Estado</FieldLabel>
+                    <DetectedField
+                      value={isStep1Valid ? detectedOriginState : null}
+                      notFound={isStep1Valid && originCpNotFound}
+                    />
+                  </div>
+                  <div>
+                    <FieldLabel>Ciudad / municipio</FieldLabel>
+                    <DetectedField
+                      value={isStep1Valid ? detectedOriginCity : null}
+                      notFound={isStep1Valid && originCpNotFound}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <FieldLabel>Ciudad / municipio origen</FieldLabel>
-                  <input
-                    type="text"
-                    value={form.originCity}
-                    onChange={e => update('originCity', e.target.value)}
-                    placeholder="Ciudad o municipio"
-                    className={INPUT_BASE}
-                    disabled={!isStep1Valid}
-                  />
-                </div>
-                <div>
-                  <FieldLabel>Código postal origen</FieldLabel>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={5}
-                    value={form.originCp}
-                    onChange={e => update('originCp', e.target.value.replace(/\D/g, '').slice(0, 5))}
-                    placeholder="00000"
-                    className={INPUT_BASE}
-                    disabled={!isStep1Valid}
-                  />
-                </div>
-                {/* Destination */}
-                <div>
-                  <FieldLabel>Estado destino</FieldLabel>
-                  <select
-                    value={form.destState}
-                    onChange={e => update('destState', e.target.value)}
-                    className={INPUT_BASE + ' cursor-pointer'}
-                    disabled={!isStep1Valid}
-                  >
-                    <option value="">Seleccionar</option>
-                    {MEXICO_STATES.map(s => (
-                      <option key={s.value} value={s.value}>{s.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <FieldLabel>Ciudad / municipio destino</FieldLabel>
-                  <input
-                    type="text"
-                    value={form.destCity}
-                    onChange={e => update('destCity', e.target.value)}
-                    placeholder="Ciudad o municipio"
-                    className={INPUT_BASE}
-                    disabled={!isStep1Valid}
-                  />
-                </div>
-                <div>
-                  <FieldLabel>Código postal destino</FieldLabel>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={5}
-                    value={form.destCp}
-                    onChange={e => update('destCp', e.target.value.replace(/\D/g, '').slice(0, 5))}
-                    placeholder="00000"
-                    className={INPUT_BASE}
-                    disabled={!isStep1Valid}
-                  />
-                </div>
+                {isStep1Valid && originCpNotFound && (
+                  <InfoBox variant="warn">
+                    <strong>CP origen {form.originCp} no encontrado</strong>{' '}
+                    en la cobertura. Un asesor puede verificar disponibilidad.
+                  </InfoBox>
+                )}
               </div>
 
-              {/* Route status — only show when step 1 is valid and CP entered */}
-              {isStep1Valid && hasDestCp && routeLookup !== undefined && !routeNeedsAdv && (
-                <InfoBox variant="success">
-                  <strong>Ruta detectada:</strong>{' '}
-                  {routeLookup.poblacion}, {routeLookup.estado} · {routeLookup.zona_operativa} · Tarifa {routeLookup.tipo_tarifa} · cotización automática disponible.
-                </InfoBox>
-              )}
-              {isStep1Valid && hasDestCp && routeLookup !== undefined && routeNeedsAdv && (
-                <InfoBox variant="warn">
-                  <strong>Ruta detectada:</strong>{' '}
-                  {routeLookup.poblacion}, {routeLookup.estado} · requiere validación con asesor.
-                </InfoBox>
-              )}
-              {isStep1Valid && hasDestCp && routeLookup === undefined && (
-                <InfoBox variant="warn">
-                  <strong>Ruta no encontrada</strong>{' '}
-                  en la cobertura administrable. Un asesor puede verificar disponibilidad.
-                </InfoBox>
-              )}
+              {/* Destination — CP detected + route validity */}
+              <div className="mt-6">
+                <SectionLabel sub="datos detectados por código postal">Destino</SectionLabel>
+                <div className={cn(
+                  'grid grid-cols-1 sm:grid-cols-3 gap-[18px]',
+                  !isStep1Valid && 'opacity-50'
+                )}>
+                  <div>
+                    <FieldLabel>Código postal</FieldLabel>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={5}
+                      value={form.destCp}
+                      onChange={e => update('destCp', e.target.value.replace(/\D/g, '').slice(0, 5))}
+                      placeholder="00000"
+                      className={INPUT_BASE}
+                      disabled={!isStep1Valid}
+                    />
+                  </div>
+                  <div>
+                    <FieldLabel>Estado</FieldLabel>
+                    <DetectedField
+                      value={isStep1Valid ? detectedDestState : null}
+                      notFound={isStep1Valid && destCpNotFound}
+                    />
+                  </div>
+                  <div>
+                    <FieldLabel>Ciudad / municipio</FieldLabel>
+                    <DetectedField
+                      value={isStep1Valid ? detectedDestCity : null}
+                      notFound={isStep1Valid && destCpNotFound}
+                    />
+                  </div>
+                </div>
+                {isStep1Valid && hasDestCp && routeLookup !== undefined && !routeNeedsAdv && (
+                  <InfoBox variant="success">
+                    <strong>Cobertura activa:</strong>{' '}
+                    {routeLookup.zona_operativa} · Tarifa {routeLookup.tipo_tarifa} · cotización automática disponible.
+                  </InfoBox>
+                )}
+                {isStep1Valid && hasDestCp && routeLookup !== undefined && routeNeedsAdv && (
+                  <InfoBox variant="warn">
+                    <strong>Requiere asesor:</strong>{' '}
+                    {routeLookup.poblacion}, {routeLookup.estado} — esta ruta requiere validación manual.
+                  </InfoBox>
+                )}
+                {isStep1Valid && destCpNotFound && (
+                  <InfoBox variant="warn">
+                    <strong>CP destino {form.destCp} no encontrado</strong>{' '}
+                    en la cobertura. Un asesor puede verificar disponibilidad.
+                  </InfoBox>
+                )}
+              </div>
             </div>
           </div>
 

@@ -538,6 +538,11 @@ export function findRouteByPostalCode(originCp: string, destinationCp: string): 
   return seedRoutes.find((route) => route.codigo_postal === destinationCp);
 }
 
+// Place lookup by CP — used for origin detection (display only, no route validity check)
+export function findPlaceByPostalCode(cp: string): RouteCoverageRow | undefined {
+  return seedRoutes.find((route) => route.codigo_postal === cp)
+}
+
 export function routeRequiresAdvisor(route: RouteCoverageRow | undefined): boolean {
   if (!route) return true;
   return !route.activo || !route.cotizacion_automatica || route.requiere_asesor;
