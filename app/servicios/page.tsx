@@ -113,9 +113,8 @@ export default function ServiciosPage() {
 
                 {/* CTAs */}
                 <div className="flex flex-wrap items-center gap-3">
-                  {/* TODO: connect to /cotizar when the page is created */}
                   <Link
-                    href="#"
+                    href="/cotizar"
                     className="inline-flex items-center gap-[10px]
                                text-[15px] font-bold text-white bg-brand-orange
                                px-8 py-[15px] rounded-[14px]
@@ -251,9 +250,8 @@ export default function ServiciosPage() {
             </p>
 
             <div className="flex items-center justify-center gap-4 flex-wrap">
-              {/* TODO: connect to /cotizar when the page is created */}
               <Link
-                href="#"
+                href="/cotizar"
                 className="inline-flex items-center gap-[10px]
                            text-[15px] font-bold text-brand-orange bg-white
                            px-[34px] py-4 rounded-[14px]

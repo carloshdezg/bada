@@ -197,9 +197,8 @@ export default function MensajeriaPage() {
 
               {/* CTAs */}
               <div className="flex flex-wrap items-center gap-3">
-                {/* TODO: connect to /cotizar?servicio=mensajeria when the page is created */}
                 <Link
-                  href="#"
+                  href="/cotizar?servicio=mensajeria"
                   className="inline-flex items-center gap-[10px]
                              text-[15px] font-bold text-white bg-brand-orange
                              px-8 py-[15px] rounded-[14px]
@@ -640,9 +639,8 @@ export default function MensajeriaPage() {
                     Usa el formulario de cotización o habla directamente con tu asesor.
                   </p>
                   <div className="flex flex-col gap-3">
-                    {/* TODO: connect to /cotizar?servicio=mensajeria when the page is created */}
                     <Link
-                      href="#"
+                      href="/cotizar?servicio=mensajeria"
                       className="inline-flex items-center justify-center gap-[10px] w-full
                                  text-[15px] font-bold text-brand-orange bg-white
                                  px-6 py-4 rounded-[12px]
@@ -805,9 +803,8 @@ export default function MensajeriaPage() {
             </p>
 
             <div className="flex items-center justify-center gap-4 flex-wrap">
-              {/* TODO: connect to /cotizar?servicio=mensajeria when the page is created */}
               <Link
-                href="#"
+                href="/cotizar?servicio=mensajeria"
                 className="inline-flex items-center gap-[10px]
                            text-[15px] font-bold text-brand-orange bg-white
                            px-[34px] py-4 rounded-[14px]
