@@ -1,79 +1,82 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight, Check, AlertCircle } from 'lucide-react'
-import Navbar         from '@/components/layout/Navbar'
-import Footer         from '@/components/layout/Footer'
-import { waUrl }      from '@/lib/whatsapp'
-import PackageIcon    from '@/components/icons/PackageIcon'
-import MapPinIcon     from '@/components/icons/MapPinIcon'
-import PhoneIcon      from '@/components/icons/PhoneIcon'
-import ClockIcon      from '@/components/icons/ClockIcon'
-import TrendingUpIcon from '@/components/icons/TrendingUpIcon'
-import PaqueteriaFaq  from './_faq'
+import Navbar            from '@/components/layout/Navbar'
+import Footer            from '@/components/layout/Footer'
+import { waUrl }         from '@/lib/whatsapp'
+import TruckIcon         from '@/components/icons/TruckIcon'
+import MapPinIcon        from '@/components/icons/MapPinIcon'
+import ShieldIcon        from '@/components/icons/ShieldIcon'
+import BuildingIcon      from '@/components/icons/BuildingIcon'
+import ChatIcon          from '@/components/icons/ChatIcon'
+import PackageIcon       from '@/components/icons/PackageIcon'
+import RutasDedicadasFaq from './_faq'
 
 export const metadata: Metadata = {
-  title: 'Paquetería — Servicios logísticos',
+  title: 'Rutas Dedicadas — Servicios logísticos',
   description:
-    'Servicio de paquetería con recolección programada para cajas, paquetes y mercancía ligera o mediana. ' +
-    'Cotización basada en peso real o peso volumétrico, según cobertura disponible.',
+    'Servicio para coordinar rutas o unidades dedicadas según las necesidades de tu operación, ' +
+    'frecuencia, cobertura y condiciones logísticas. Validación con asesor.',
 }
 
-// ── Feature cards — Qué resuelve ──────────────────────────────────────
+// ── Feature cards — diferenciadores ──────────────────────────────────
 const FEATURES: { icon: React.ReactNode; title: string; body: string }[] = [
   {
-    icon:  <TrendingUpIcon primary="orange" size={32} />,
-    title: 'Peso cobrable claro',
-    body:  'El cálculo considera peso real y peso volumétrico para definir el peso cobrable de forma transparente.',
+    icon:  <MapPinIcon   primary="orange" size={32} />,
+    title: 'Planeación por ruta',
+    body:  'Cada operación se revisa según origen, destino, frecuencia, volumen y condiciones necesarias para la ruta.',
   },
   {
-    icon:  <MapPinIcon     primary="orange" size={32} />,
-    title: 'Cobertura validada',
-    body:  'La ruta se valida contra la cobertura disponible antes de mostrar una cotización automática.',
+    icon:  <TruckIcon    primary="orange" size={32} />,
+    title: 'Mayor control operativo',
+    body:  'Pensado para empresas que necesitan coordinar recorridos o entregas con más control que un envío estándar.',
   },
   {
-    icon:  <PackageIcon    primary="orange" size={32} />,
-    title: 'Paquetes con mayor capacidad',
-    body:  'Una opción más adecuada para cajas, bultos y mercancía ligera o mediana que excede la mensajería.',
+    icon:  <ShieldIcon   primary="orange" size={32} />,
+    title: 'Validación antes de confirmar',
+    body:  'La disponibilidad se revisa con un asesor para definir si la ruta puede cubrirse y bajo qué condiciones.',
   },
   {
-    icon:  <PhoneIcon      primary="orange" size={32} />,
-    title: 'Asesor cuando se necesita',
-    body:  'Si el envío excede límites, la ruta no está disponible o requiere revisión, un asesor puede ayudarte a validar la mejor opción.',
+    icon:  <BuildingIcon primary="orange" size={32} />,
+    title: 'Solución adaptable',
+    body:  'El servicio puede ajustarse a operaciones recurrentes, rutas específicas o necesidades logísticas particulares.',
   },
 ]
 
 // ── Qué incluye — confirmado ──────────────────────────────────────────
 const INCLUYE_CONFIRMED = [
-  'Recolección programada según cobertura.',
-  'Envío de paquetes, cajas y bultos permitidos.',
-  'Cálculo por peso real o volumétrico.',
-  'Aplicación de peso cobrable según regla vigente.',
-  'Cobertura local o foránea según ruta disponible.',
-  'Cotización estimada con IVA incluido.',
-  'Opción de asesor cuando la ruta o el envío requiere validación.',
+  'Revisión de la necesidad operativa.',
+  'Validación de origen, destino y cobertura.',
+  'Evaluación de frecuencia, volumen y condiciones.',
+  'Posibilidad de ruta o unidad dedicada según disponibilidad.',
+  'Acompañamiento de asesor para definir la mejor opción.',
+  'Coordinación previa antes de confirmar el servicio.',
+  'Propuesta sujeta a condiciones operativas.',
 ]
 
-// ── Qué incluye — requiere validación ────────────────────────────────
+// ── Debe validarse con asesor ─────────────────────────────────────────
 const INCLUYE_VALIDACION = [
-  'Rutas no disponibles para cotización automática.',
-  'Paquetes que excedan peso o dimensiones máximas.',
-  'Zonas marcadas como "requiere asesor" en la cobertura administrable.',
-  'Envíos con condiciones especiales de manejo.',
-  'Volúmenes altos o necesidades recurrentes.',
+  'Disponibilidad de ruta o unidad.',
+  'Frecuencia requerida.',
+  'Volumen aproximado de envíos.',
+  'Puntos de recolección y entrega.',
+  'Horarios o ventanas operativas.',
+  'Condiciones especiales de manejo.',
+  'Alcance y cobertura de la operación.',
 ]
 
-// ── Cotizar checklist ─────────────────────────────────────────────────
-const COTIZAR_CHECKS = [
-  'Largo, ancho y alto en centímetros.',
-  'Peso real en kilogramos.',
-  'Código postal de origen.',
-  'Código postal de destino.',
-  'Tipo de servicio: Paquetería.',
-  'Validación de ruta disponible.',
-  'Confirmación si el envío requiere asesor.',
+// ── Checklist de asesoría ─────────────────────────────────────────────
+const ASESORIA_CHECKS = [
+  'Origen y destino de la operación.',
+  'Frecuencia estimada de la ruta.',
+  'Volumen aproximado de paquetes o entregas.',
+  'Tipo de mercancía o envío.',
+  'Horarios o ventanas de operación.',
+  'Puntos de recolección y entrega.',
+  'Necesidades especiales de manejo o coordinación.',
 ]
 
-// ── Servicios relacionados ─────────────────────────────────────────────
+// ── Servicios relacionados ────────────────────────────────────────────
 const RELACIONADOS = [
   {
     id:    'mensajeria',
@@ -84,11 +87,11 @@ const RELACIONADOS = [
     color: 'orange' as const,
   },
   {
-    id:    'rutas-dedicadas',
-    name:  'Rutas Dedicadas',
-    tag:   'Unidades exclusivas',
-    desc:  'Unidades o rutas exclusivas para operaciones recurrentes o especiales.',
-    href:  '/servicios/rutas-dedicadas',
+    id:    'paqueteria',
+    name:  'Paquetería',
+    tag:   'Paquetería LTL',
+    desc:  'Paquetes, cajas y bultos con cálculo por peso cobrable.',
+    href:  '/servicios/paqueteria',
     color: 'blue' as const,
   },
   {
@@ -109,14 +112,14 @@ const RELACIONADOS = [
   },
 ]
 
-export default function PaqueteriaPage() {
+export default function RutasDedicadasPage() {
   return (
     <>
       <Navbar />
 
       <main className="pt-[68px]">
 
-        {/* ── Hero — one-column editorial ───────────────────────────── */}
+        {/* ── Hero ─────────────────────────────────────────────────── */}
         <section className="relative overflow-hidden bg-white">
 
           {/* Orange radial — top right */}
@@ -150,7 +153,7 @@ export default function PaqueteriaPage() {
                   </Link>
                 </li>
                 <li aria-hidden="true" className="text-ink-20 select-none">/</li>
-                <li className="text-ink">Paquetería</li>
+                <li className="text-ink">Rutas Dedicadas</li>
               </ol>
             </nav>
 
@@ -163,30 +166,31 @@ export default function PaqueteriaPage() {
                   className="w-2 h-2 rounded-full bg-brand-orange flex-shrink-0"
                   aria-hidden="true"
                 />
-                Paquetería · BADA
+                Rutas Dedicadas · BADA
               </div>
 
               <h1
                 className="font-display font-black leading-[1.04] tracking-[-0.025em] text-ink mb-6"
                 style={{ fontSize: 'clamp(52px, 6.2vw, 80px)' }}
               >
-                Paquetes y cajas,{' '}
+                Rutas dedicadas,{' '}
                 <em className="text-brand-orange" style={{ fontStyle: 'italic' }}>
-                  con el peso claro
-                  <br />desde el inicio.
+                  para operaciones que necesitan control propio.
                 </em>
               </h1>
 
               <p className="text-[17px] text-ink-50 font-light leading-[1.75] mb-8 max-w-[560px]">
-                Servicio de paquetería para enviar cajas, paquetes y mercancía ligera o mediana,
-                con recolección programada y cotización basada en peso real o peso volumétrico,
-                según cobertura disponible.
+                Servicio para coordinar rutas o unidades dedicadas según las necesidades de tu
+                operación, frecuencia, cobertura y condiciones logísticas.
               </p>
 
               {/* CTAs */}
               <div className="flex flex-wrap items-center gap-3">
-                <Link
-                  href="/cotizar?servicio=paqueteria"
+                <a
+                  href={waUrl()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Hablar con un asesor por WhatsApp (abre en nueva pestaña)"
                   className="inline-flex items-center gap-[10px]
                              text-[15px] font-bold text-white bg-brand-orange
                              px-8 py-[15px] rounded-[14px]
@@ -195,15 +199,12 @@ export default function PaqueteriaPage() {
                              hover:shadow-[0_8px_32px_rgba(241,98,39,0.4)]
                              transition-all duration-[250ms]"
                 >
-                  Cotizar servicio
+                  Hablar con un asesor
                   <ArrowRight className="w-[15px] h-[15px]" aria-hidden="true" />
-                </Link>
+                </a>
 
-                <a
-                  href={waUrl()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Hablar con un asesor por WhatsApp (abre en nueva pestaña)"
+                <Link
+                  href="/servicios"
                   className="inline-flex items-center gap-[10px]
                              text-[15px] font-semibold text-ink-80
                              bg-gray-100 border-[1.5px] border-gray-200
@@ -211,8 +212,8 @@ export default function PaqueteriaPage() {
                              hover:bg-gray-200 hover:border-gray-300
                              transition-all duration-[250ms]"
                 >
-                  Hablar con un asesor
-                </a>
+                  Ver servicios
+                </Link>
               </div>
             </div>
 
@@ -223,18 +224,18 @@ export default function PaqueteriaPage() {
               <div
                 className="relative h-[360px] sm:h-[420px] rounded-[24px] overflow-hidden"
                 style={{
-                  background: 'linear-gradient(135deg, #E8530F 0%, #F16227 40%, #14A3BE 100%)',
+                  background: 'linear-gradient(135deg, #1A2B3C 0%, #2D3E50 40%, #F16227 100%)',
                 }}
                 aria-hidden="true"
               >
                 <div
                   className="absolute inset-0"
                   style={{
-                    background: 'radial-gradient(ellipse at 70% 35%, rgba(255,255,255,0.10) 0%, transparent 55%)',
+                    background: 'radial-gradient(ellipse at 30% 60%, rgba(255,255,255,0.07) 0%, transparent 55%)',
                   }}
                 />
-                <div className="absolute bottom-8 left-8 opacity-[0.18]">
-                  <PackageIcon primary="blue" size={96} />
+                <div className="absolute bottom-8 left-8 opacity-[0.15]">
+                  <TruckIcon primary="orange" size={96} />
                 </div>
               </div>
 
@@ -244,18 +245,18 @@ export default function PaqueteriaPage() {
                                 shadow-[0_8px_32px_rgba(15,25,35,0.12)]">
                   <div
                     className="absolute top-0 left-0 right-0 h-[3px] rounded-t-[20px]"
-                    style={{ background: 'linear-gradient(90deg, #E8530F 0%, #14A3BE 100%)' }}
+                    style={{ background: 'linear-gradient(90deg, #1A2B3C 0%, #F16227 100%)' }}
                     aria-hidden="true"
                   />
                   <p className="text-[12px] font-bold tracking-[0.1em] uppercase text-ink-50 mb-4">
-                    Paquetería · BADA
+                    Rutas Dedicadas · BADA
                   </p>
                   <div className="flex flex-col gap-[10px]">
                     {[
-                      'Cajas y paquetes',
-                      'Peso real o volumétrico',
-                      'Cobertura local o foránea',
-                      'Asesor si requiere validación',
+                      'Ruta o unidad dedicada',
+                      'Operaciones recurrentes',
+                      'Validación con asesor',
+                      'Cobertura según condiciones',
                     ].map(item => (
                       <div key={item} className="flex items-center gap-3">
                         <div
@@ -282,7 +283,7 @@ export default function PaqueteriaPage() {
                 className="font-display font-black text-ink tracking-[-0.025em]"
                 style={{ fontSize: 'clamp(32px, 4vw, 50px)', lineHeight: '1.06' }}
               >
-                ¿Paquetería es lo que necesitas?
+                ¿Rutas Dedicadas es lo que necesitas?
               </h2>
             </div>
 
@@ -301,21 +302,21 @@ export default function PaqueteriaPage() {
                 </div>
                 <div className="w-[52px] h-[52px] rounded-[14px] bg-[rgba(241,98,39,0.10)]
                                 flex items-center justify-center mb-5 flex-shrink-0">
-                  <PackageIcon primary="orange" size={32} />
+                  <TruckIcon primary="orange" size={32} />
                 </div>
                 <h3 className="font-display font-black text-[20px] text-ink
                                leading-[1.15] tracking-[-0.02em] mb-3">
                   Ideal para
                 </h3>
                 <p className="text-[14px] text-ink-50 font-light leading-[1.6] mb-4">
-                  Cajas, paquetes y bultos de mayor volumen que un envío de mensajería.
+                  Operaciones que necesitan una ruta o unidad dedicada, con mayor control que un envío individual.
                 </p>
                 <ul className="flex flex-col gap-3 list-none p-0 m-0">
                   {[
-                    'Paquetes de productos o mercancía.',
-                    'Envíos con peso o volumen moderado.',
-                    'Negocios que necesitan mover paquetes de forma recurrente.',
-                    'Operaciones que requieren recolección programada.',
+                    'Entregas recurrentes o programadas.',
+                    'Operaciones con puntos de entrega definidos.',
+                    'Empresas que requieren continuidad en sus rutas.',
+                    'Necesidades logísticas que no encajan en paquetería estándar.',
                   ].map(item => (
                     <li key={item} className="flex items-start gap-[10px]">
                       <Check className="w-[14px] h-[14px] text-brand-orange flex-shrink-0 mt-[3px]" aria-hidden="true" />
@@ -338,21 +339,21 @@ export default function PaqueteriaPage() {
                 </div>
                 <div className="w-[52px] h-[52px] rounded-[14px] bg-[rgba(20,163,190,0.10)]
                                 flex items-center justify-center mb-5 flex-shrink-0">
-                  <TrendingUpIcon primary="blue" size={32} />
+                  <MapPinIcon primary="blue" size={32} />
                 </div>
                 <h3 className="font-display font-black text-[20px] text-ink
                                leading-[1.15] tracking-[-0.02em] mb-3">
                   Mejor si necesitas
                 </h3>
                 <p className="text-[14px] text-ink-50 font-light leading-[1.6] mb-4">
-                  Un servicio para mover paquetes con cálculo claro de peso cobrable y validación de cobertura.
+                  Coordinar una operación específica con validación previa de cobertura, frecuencia, volumen y condiciones.
                 </p>
                 <ul className="flex flex-col gap-3 list-none p-0 m-0">
                   {[
-                    'Cotizar por peso real o volumétrico.',
-                    'Validar cobertura antes de enviar.',
-                    'Enviar paquetes a rutas locales o foráneas.',
-                    'Tener una opción más robusta que mensajería.',
+                    'Revisar una ruta fija o recurrente.',
+                    'Planear una unidad o recorrido exclusivo.',
+                    'Coordinar entregas con mayor control operativo.',
+                    'Hablar con un asesor antes de confirmar el servicio.',
                   ].map(item => (
                     <li key={item} className="flex items-start gap-[10px]">
                       <Check className="w-[14px] h-[14px] text-brand-blue flex-shrink-0 mt-[3px]" aria-hidden="true" />
@@ -375,20 +376,20 @@ export default function PaqueteriaPage() {
                 </div>
                 <div className="w-[52px] h-[52px] rounded-[14px] bg-[rgba(15,25,35,0.06)]
                                 flex items-center justify-center mb-5 flex-shrink-0">
-                  <ClockIcon primary="ink" size={32} />
+                  <PackageIcon primary="ink" size={32} />
                 </div>
                 <h3 className="font-display font-black text-[20px] text-ink
                                leading-[1.15] tracking-[-0.02em] mb-3">
                   Considera otro si
                 </h3>
                 <p className="text-[14px] text-ink-50 font-light leading-[1.6] mb-4">
-                  Tu operación requiere una solución más especializada.
+                  Tu envío puede resolverse con una opción más simple.
                 </p>
                 <ul className="flex flex-col gap-3 list-none p-0 m-0">
                   <li className="flex items-start gap-[10px]">
                     <span className="text-[14px] text-ink-50 flex-shrink-0 mt-[1px]" aria-hidden="true">—</span>
                     <span className="text-[14px] text-ink-80 font-light leading-[1.6]">
-                      Si necesitas mover documentos o paquetes pequeños urgentes, revisa{' '}
+                      Si necesitas mover documentos o paquetes pequeños, revisa{' '}
                       <Link href="/servicios/mensajeria" className="underline underline-offset-2 hover:text-ink transition-colors">
                         Mensajería
                       </Link>.
@@ -397,16 +398,16 @@ export default function PaqueteriaPage() {
                   <li className="flex items-start gap-[10px]">
                     <span className="text-[14px] text-ink-50 flex-shrink-0 mt-[1px]" aria-hidden="true">—</span>
                     <span className="text-[14px] text-ink-80 font-light leading-[1.6]">
-                      Si necesitas una unidad o ruta exclusiva, revisa{' '}
-                      <Link href="/servicios/rutas-dedicadas" className="underline underline-offset-2 hover:text-ink transition-colors">
-                        Rutas Dedicadas
+                      Si necesitas enviar cajas o bultos, revisa{' '}
+                      <Link href="/servicios/paqueteria" className="underline underline-offset-2 hover:text-ink transition-colors">
+                        Paquetería
                       </Link>.
                     </span>
                   </li>
                   <li className="flex items-start gap-[10px]">
                     <span className="text-[14px] text-ink-50 flex-shrink-0 mt-[1px]" aria-hidden="true">—</span>
                     <span className="text-[14px] text-ink-80 font-light leading-[1.6]">
-                      Si necesitas una operación completa para tu negocio, revisa{' '}
+                      Si necesitas una solución operativa completa, revisa{' '}
                       <Link href="/servicios" className="underline underline-offset-2 hover:text-ink transition-colors">
                         Logística
                       </Link>.{/* TODO: update href to /servicios/logistica when page exists */}
@@ -437,11 +438,11 @@ export default function PaqueteriaPage() {
                 className="font-display font-black text-ink tracking-[-0.025em] mb-4"
                 style={{ fontSize: 'clamp(34px, 4vw, 52px)', lineHeight: '1.06' }}
               >
-                Lo que hace diferente a Paquetería BADA
+                Lo que hace diferente a Rutas Dedicadas BADA
               </h2>
               <p className="text-[15px] text-ink-50 font-light leading-[1.75] max-w-[560px]">
-                Una solución para mover paquetes con reglas claras de peso, cobertura administrable
-                y apoyo de asesor cuando el envío requiere validación.
+                Una solución para operaciones que requieren planeación, continuidad y validación
+                directa antes de confirmar una ruta.
               </p>
             </div>
 
@@ -488,7 +489,7 @@ export default function PaqueteriaPage() {
               {/* Confirmed checklist */}
               <div className="bg-gray-50 border border-gray-200 rounded-[20px] p-8">
                 <p className="text-[11px] font-bold tracking-[0.12em] uppercase text-ink-50 mb-5">
-                  Confirmado
+                  Incluye
                 </p>
                 <ul className="flex flex-col gap-4 list-none p-0 m-0">
                   {INCLUYE_CONFIRMED.map(item => (
@@ -506,26 +507,27 @@ export default function PaqueteriaPage() {
                 </ul>
               </div>
 
-              {/* Validación card — operational language, orange accent */}
-              <div className="rounded-[20px] p-8 border-[1.5px] border-brand-orange-100 bg-brand-orange-50">
+              {/* Validación con asesor — blue accent (advisor service) */}
+              <div className="rounded-[20px] p-8 border-[1.5px] border-brand-blue-100 bg-brand-blue-50">
                 <div className="flex items-center gap-3 mb-5">
-                  <AlertCircle className="w-[18px] h-[18px] text-brand-orange flex-shrink-0" aria-hidden="true" />
-                  <p className="text-[11px] font-bold tracking-[0.12em] uppercase text-brand-orange">
-                    Con validación
+                  <AlertCircle className="w-[18px] h-[18px] text-brand-blue flex-shrink-0" aria-hidden="true" />
+                  <p className="text-[11px] font-bold tracking-[0.12em] uppercase text-brand-blue">
+                    Debe validarse con asesor
                   </p>
                 </div>
                 <p className="text-[14px] text-ink-80 font-light leading-[1.75] mb-5">
-                  Algunos casos pueden requerir revisión antes de confirmar la cotización.
+                  Rutas Dedicadas requiere revisión antes de confirmar precio, cobertura y
+                  condiciones del servicio.
                 </p>
                 <ul className="flex flex-col gap-4 list-none p-0 m-0">
                   {INCLUYE_VALIDACION.map(item => (
                     <li key={item} className="flex items-start gap-3">
                       <span
-                        className="w-[22px] h-[22px] rounded-full bg-white border border-brand-orange-100
+                        className="w-[22px] h-[22px] rounded-full bg-white border border-brand-blue-100
                                    flex items-center justify-center flex-shrink-0 mt-[1px]"
                         aria-hidden="true"
                       >
-                        <AlertCircle className="w-[10px] h-[10px] text-brand-orange" />
+                        <AlertCircle className="w-[10px] h-[10px] text-brand-blue" />
                       </span>
                       <span className="text-[14px] text-ink-80 font-medium leading-[1.6]">{item}</span>
                     </li>
@@ -537,20 +539,21 @@ export default function PaqueteriaPage() {
           </div>
         </section>
 
-        {/* ── Información para cotizar ────────────────────────────────── */}
+        {/* ── Asesoría — información para evaluar tu ruta ─────────────── */}
         <section className="py-[96px] bg-gray-50 border-b border-gray-200">
           <div className="max-w-site mx-auto px-5 sm:px-7">
             <div className="mb-12">
-              <span className="tag">Cotización</span>
+              <span className="tag">Asesoría</span>
               <h2
                 className="font-display font-black text-ink tracking-[-0.025em] mb-4"
                 style={{ fontSize: 'clamp(34px, 4vw, 52px)', lineHeight: '1.06' }}
               >
-                Información que necesitamos para cotizar
+                Información que necesitamos para evaluar tu ruta
               </h2>
               <p className="text-[15px] text-ink-50 font-light leading-[1.75] max-w-[540px]">
-                Para calcular una cotización más precisa, el cotizador necesita las medidas, el peso real
-                y la ruta del envío. Con esos datos se calcula el peso volumétrico y se define el peso cobrable.
+                Para revisar una ruta dedicada, un asesor necesita entender el origen, destino,
+                frecuencia, volumen y condiciones de la operación. Con esos datos se puede
+                orientar mejor la solución.
               </p>
             </div>
 
@@ -559,7 +562,7 @@ export default function PaqueteriaPage() {
               {/* Checklist */}
               <div className="bg-white border border-gray-200 rounded-[20px] p-8">
                 <ul className="flex flex-col gap-4 list-none p-0 m-0">
-                  {COTIZAR_CHECKS.map(item => (
+                  {ASESORIA_CHECKS.map(item => (
                     <li key={item} className="flex items-start gap-3">
                       <span
                         className="w-[22px] h-[22px] rounded-full bg-brand-orange-50 border border-brand-orange-100
@@ -583,19 +586,22 @@ export default function PaqueteriaPage() {
                                 flex items-center justify-center mb-5"
                     aria-hidden="true"
                   >
-                    <PackageIcon primary="blue" size={32} />
+                    <ChatIcon primary="blue" size={32} />
                   </div>
                   <h3 className="font-display font-black text-[22px] text-white
                                  leading-[1.15] tracking-[-0.02em] mb-3">
-                    ¿Listo para cotizar?
+                    Cuéntanos sobre tu operación
                   </h3>
                   <p className="text-[14px] text-white/80 font-light leading-[1.75] mb-6">
-                    Ingresa los datos de tu paquete y revisa si puede calcularse automáticamente
-                    según cobertura y condiciones operativas.
+                    Comparte los datos generales de tu ruta para que un asesor pueda revisar
+                    disponibilidad, cobertura y condiciones operativas.
                   </p>
                   <div className="flex flex-col gap-3">
-                    <Link
-                      href="/cotizar?servicio=paqueteria"
+                    <a
+                      href={waUrl()}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Hablar con un asesor por WhatsApp (abre en nueva pestaña)"
                       className="inline-flex items-center justify-center gap-[10px] w-full
                                  text-[15px] font-bold text-brand-orange bg-white
                                  px-6 py-4 rounded-[12px]
@@ -603,14 +609,11 @@ export default function PaqueteriaPage() {
                                  hover:shadow-[0_4px_16px_rgba(15,25,35,0.14)]
                                  transition-all duration-[220ms]"
                     >
-                      Cotizar servicio
+                      Hablar con un asesor
                       <ArrowRight className="w-[14px] h-[14px]" aria-hidden="true" />
-                    </Link>
-                    <a
-                      href={waUrl()}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label="Hablar con un asesor por WhatsApp (abre en nueva pestaña)"
+                    </a>
+                    <Link
+                      href="/servicios"
                       className="inline-flex items-center justify-center gap-[10px] w-full
                                  text-[15px] font-semibold text-[#ffffff]
                                  px-6 py-[15px] rounded-[12px]
@@ -618,8 +621,8 @@ export default function PaqueteriaPage() {
                                  hover:bg-[rgba(255,255,255,.10)] hover:border-[rgba(255,255,255,.65)]
                                  transition-all duration-[220ms]"
                     >
-                      Hablar con un asesor
-                    </a>
+                      Ver servicios
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -637,7 +640,7 @@ export default function PaqueteriaPage() {
                 className="font-display font-black text-ink tracking-[-0.025em] mb-4"
                 style={{ fontSize: 'clamp(34px, 4vw, 52px)', lineHeight: '1.06' }}
               >
-                Respuestas sobre Paquetería
+                Respuestas sobre Rutas Dedicadas
               </h2>
               <p className="text-[15px] text-ink-50 font-light leading-[1.75] max-w-[500px]">
                 Si no encuentras lo que necesitas, tu asesor puede orientarte directamente.
@@ -645,7 +648,7 @@ export default function PaqueteriaPage() {
             </div>
 
             <div className="max-w-[720px]">
-              <PaqueteriaFaq />
+              <RutasDedicadasFaq />
             </div>
           </div>
         </section>
@@ -745,20 +748,23 @@ export default function PaqueteriaPage() {
               className="font-display font-black text-white tracking-[-0.025em] leading-[1.05] mb-6"
               style={{ fontSize: 'clamp(38px, 5vw, 62px)' }}
             >
-              Cotiza tu envío de{' '}
+              Revisa tu ruta con{' '}
               <em className="text-brand-orange" style={{ fontStyle: 'italic' }}>
-                paquetería.
+                un asesor.
               </em>
             </h2>
 
             <p className="text-[16px] text-white/55 font-light leading-[1.75] mb-12 max-w-[480px] mx-auto">
-              Calcula un precio estimado con base en las medidas, peso y ruta de tu paquete.
-              Si tu envío requiere validación, un asesor puede ayudarte a revisar la mejor opción.
+              Cuéntanos origen, destino, frecuencia y condiciones de tu operación para evaluar
+              si una ruta dedicada es la mejor opción.
             </p>
 
             <div className="flex items-center justify-center gap-4 flex-wrap">
-              <Link
-                href="/cotizar?servicio=paqueteria"
+              <a
+                href={waUrl()}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Hablar con un asesor por WhatsApp (abre en nueva pestaña)"
                 className="inline-flex items-center gap-[10px]
                            text-[15px] font-bold text-brand-orange bg-white
                            px-[34px] py-4 rounded-[14px]
@@ -766,15 +772,12 @@ export default function PaqueteriaPage() {
                            hover:-translate-y-px hover:shadow-[0_8px_32px_rgba(15,25,35,0.22)]
                            transition-all duration-[250ms]"
               >
-                Cotizar servicio
+                Hablar con un asesor
                 <ArrowRight className="w-[15px] h-[15px]" aria-hidden="true" />
-              </Link>
+              </a>
 
-              <a
-                href={waUrl()}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Hablar con un asesor por WhatsApp (abre en nueva pestaña)"
+              <Link
+                href="/servicios"
                 className="inline-flex items-center gap-[10px]
                            text-[15px] font-bold text-[#ffffff]
                            px-[34px] py-4 rounded-[14px]
@@ -782,8 +785,8 @@ export default function PaqueteriaPage() {
                            hover:bg-[rgba(255,255,255,.10)] hover:border-[rgba(255,255,255,.65)] hover:-translate-y-px
                            transition-all duration-[250ms]"
               >
-                Hablar con un asesor
-              </a>
+                Ver servicios
+              </Link>
             </div>
           </div>
         </section>

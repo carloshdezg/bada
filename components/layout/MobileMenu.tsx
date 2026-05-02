@@ -8,7 +8,7 @@ import { NAV_LINKS, TRACKING_URL } from '@/lib/constants'
 const SERVICES = [
   { label: 'Mensajería',      href: '/servicios/mensajeria' },
   { label: 'Paquetería',      href: '/servicios' },   // TODO: /servicios/paqueteria
-  { label: 'Rutas Dedicadas', href: '/servicios' },   // TODO: /servicios/rutas-dedicadas
+  { label: 'Rutas Dedicadas', href: '/servicios/rutas-dedicadas' },
   { label: 'Logística',       href: '/servicios' },   // TODO: /servicios/logistica
   { label: 'E-commerce',      href: '/servicios' },   // TODO: /servicios/ecommerce
 ] as const

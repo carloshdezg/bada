@@ -23,7 +23,7 @@ const SERVICES = [
   {
     label:    'Rutas Dedicadas',
     desc:     'Flota exclusiva para tu negocio',
-    href:     '/servicios',   // TODO: change to /servicios/rutas-dedicadas when page exists
+    href:     '/servicios/rutas-dedicadas',
     icon:     MapPin,
   },
   {
