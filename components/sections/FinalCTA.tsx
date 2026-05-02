@@ -44,9 +44,8 @@ export default function FinalCTA() {
         </p>
 
         <div className="flex items-center justify-center gap-[16px] flex-wrap">
-          {/* TODO: connect to /cotizar when the page is created */}
           <Link
-            href="#"
+            href="/cotizar"
             className="inline-flex items-center gap-[10px]
                        text-[15px] font-bold text-brand-orange bg-white
                        px-[34px] py-4 rounded-[14px]

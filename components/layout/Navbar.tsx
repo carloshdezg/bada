@@ -77,10 +77,9 @@ export default function Navbar() {
               <ArrowUpRight className="w-[13px] h-[13px] sm:w-[14px] sm:h-[14px] flex-shrink-0" aria-hidden="true" />
             </a>
 
-            {/* TODO: connect to /cotizar when the page is created */}
             {/* Cotizar — Link interno, naranja sólido */}
             <Link
-              href="#"
+              href="/cotizar"
               className="inline-flex items-center gap-1.5
                          text-[13px] sm:text-[13.5px] font-bold text-white
                          bg-brand-orange border-[1.5px] border-brand-orange

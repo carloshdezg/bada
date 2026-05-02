@@ -87,9 +87,8 @@ export default function MobileMenu({ open, onClose }: Props) {
             Rastrear envío
             <ArrowUpRight className="w-4 h-4" aria-hidden="true" />
           </a>
-          {/* TODO: connect to /cotizar when the page is created */}
           <Link
-            href="#"
+            href="/cotizar"
             onClick={onClose}
             className="flex items-center justify-center gap-2
                        text-[14px] font-bold text-white
