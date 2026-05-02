@@ -118,7 +118,7 @@ const RELACIONADOS = [
     name:  'E-commerce',
     tag:   'Envíos para e-commerce',
     desc:  'Guías electrónicas, etiquetas y flujos especializados para tiendas en línea.',
-    href:  '/servicios/envios-para-ecommerce',
+    href:  '/servicios/ecommerce',
     color: 'orange' as const,
   },
 ]

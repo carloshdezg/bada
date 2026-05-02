@@ -17,7 +17,7 @@ const SERVICES = [
   {
     label:    'Paquetería',
     desc:     'Cargas medianas puerta a puerta',
-    href:     '/servicios',   // TODO: change to /servicios/paqueteria when page exists
+    href:     '/servicios/paqueteria',
     icon:     Truck,
   },
   {
@@ -35,7 +35,7 @@ const SERVICES = [
   {
     label:    'E-commerce',
     desc:     'Integración con tu tienda online',
-    href:     '/servicios',   // TODO: change to /servicios/ecommerce when page exists
+    href:     '/servicios/ecommerce',
     icon:     ShoppingBag,
   },
 ] as const

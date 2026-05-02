@@ -104,7 +104,7 @@ const RELACIONADOS = [
     name:  'E-commerce',
     tag:   'Envíos para e-commerce',
     desc:  'Flujo pensado para tiendas, ventas online y envíos frecuentes.',
-    href:  '/servicios',   // TODO: change to /servicios/ecommerce when page exists
+    href:  '/servicios/ecommerce',
     color: 'blue' as const,
   },
 ]
@@ -172,8 +172,7 @@ export default function PaqueteriaPage() {
               >
                 Paquetes y cajas,{' '}
                 <em className="text-brand-orange" style={{ fontStyle: 'italic' }}>
-                  con el peso claro
-                  <br />desde el inicio.
+                  con el peso claro desde el inicio.
                 </em>
               </h1>
 
@@ -416,9 +415,9 @@ export default function PaqueteriaPage() {
                     <span className="text-[14px] text-ink-50 flex-shrink-0 mt-[1px]" aria-hidden="true">—</span>
                     <span className="text-[14px] text-ink-80 font-light leading-[1.6]">
                       Si vendes en línea y manejas envíos frecuentes, revisa{' '}
-                      <Link href="/servicios" className="underline underline-offset-2 hover:text-ink transition-colors">
+                      <Link href="/servicios/ecommerce" className="underline underline-offset-2 hover:text-ink transition-colors">
                         Envíos para e-commerce
-                      </Link>.{/* TODO: update href to /servicios/ecommerce when page exists */}
+                      </Link>.
                     </span>
                   </li>
                 </ul>

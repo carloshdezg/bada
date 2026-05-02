@@ -1,7 +1,7 @@
 // TODO: replace '#' with real hrefs when the pages are created
 export const NAV_LINKS = [
   { href: '/servicios', label: 'Servicios' },
-  { href: '#',          label: 'Cobertura' },
+  { href: '/cobertura',  label: 'Cobertura' },
   { href: '#',          label: 'Nosotros'  },
   { href: '#',          label: 'Contacto'  },
 ] as const

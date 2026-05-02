@@ -7,10 +7,10 @@ import { NAV_LINKS, TRACKING_URL } from '@/lib/constants'
 
 const SERVICES = [
   { label: 'Mensajería',      href: '/servicios/mensajeria' },
-  { label: 'Paquetería',      href: '/servicios' },   // TODO: /servicios/paqueteria
+  { label: 'Paquetería',      href: '/servicios/paqueteria' },
   { label: 'Rutas Dedicadas', href: '/servicios/rutas-dedicadas' },
   { label: 'Logística',       href: '/servicios/logistica' },
-  { label: 'E-commerce',      href: '/servicios' },   // TODO: /servicios/ecommerce
+  { label: 'E-commerce',      href: '/servicios/ecommerce' },
 ] as const
 
 interface Props {

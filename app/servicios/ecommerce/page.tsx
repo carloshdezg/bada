@@ -1,80 +1,80 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight, Check, AlertCircle } from 'lucide-react'
-import Navbar        from '@/components/layout/Navbar'
-import Footer        from '@/components/layout/Footer'
-import { waUrl }     from '@/lib/whatsapp'
-import TrendingUpIcon from '@/components/icons/TrendingUpIcon'
-import BuildingIcon  from '@/components/icons/BuildingIcon'
-import ShieldIcon    from '@/components/icons/ShieldIcon'
-import ChatIcon      from '@/components/icons/ChatIcon'
-import MapPinIcon    from '@/components/icons/MapPinIcon'
-import PackageIcon   from '@/components/icons/PackageIcon'
-import BoltIcon      from '@/components/icons/BoltIcon'
-import LogisticaFaq  from './_faq'
+import Navbar              from '@/components/layout/Navbar'
+import Footer              from '@/components/layout/Footer'
+import { waUrl }           from '@/lib/whatsapp'
+import ShoppingCartIcon    from '@/components/icons/ShoppingCartIcon'
+import TrendingUpIcon      from '@/components/icons/TrendingUpIcon'
+import PackageIcon         from '@/components/icons/PackageIcon'
+import ShieldIcon          from '@/components/icons/ShieldIcon'
+import ChatIcon            from '@/components/icons/ChatIcon'
+import MapPinIcon          from '@/components/icons/MapPinIcon'
+import BoltIcon            from '@/components/icons/BoltIcon'
+import EcommerceFaq        from './_faq'
 
 export const metadata: Metadata = {
-  title: 'Logística — Servicios logísticos',
+  title: 'Envíos para E-commerce — Servicios logísticos',
   description:
-    'Servicio para revisar necesidades logísticas más amplias, coordinar procesos de envío ' +
-    'y orientar la mejor solución según cobertura, operación y condiciones disponibles.',
+    'Servicio pensado para negocios que venden en línea y necesitan revisar una operación ' +
+    'de envíos recurrentes, según volumen, cobertura y condiciones disponibles.',
 }
 
 // ── Feature cards — diferenciadores ──────────────────────────────────
 const FEATURES: { icon: React.ReactNode; title: string; body: string }[] = [
   {
     icon:  <TrendingUpIcon primary="orange" size={32} />,
-    title: 'Diagnóstico operativo',
-    body:  'Primero se entiende la necesidad: tipo de envío, frecuencia, rutas, volumen y condiciones de operación.',
+    title: 'Enfoque en pedidos recurrentes',
+    body:  'Pensado para negocios que no solo envían una vez, sino que necesitan ordenar una operación frecuente.',
   },
   {
-    icon:  <BuildingIcon   primary="orange" size={32} />,
-    title: 'Solución orientada al caso',
-    body:  'La recomendación puede integrar diferentes servicios según lo que realmente necesita tu operación.',
+    icon:  <ShoppingCartIcon primary="orange" size={32} />,
+    title: 'Revisión de volumen',
+    body:  'Un asesor puede revisar cuántos envíos manejas y qué tipo de solución puede adaptarse mejor a tu operación.',
   },
   {
-    icon:  <ShieldIcon     primary="orange" size={32} />,
-    title: 'Validación antes de prometer',
-    body:  'La cobertura, disponibilidad y condiciones se revisan antes de confirmar cualquier solución.',
+    icon:  <MapPinIcon primary="orange" size={32} />,
+    title: 'Cobertura administrable',
+    body:  'La disponibilidad depende de la cobertura vigente y de las rutas configuradas para la operación.',
   },
   {
-    icon:  <ChatIcon       primary="orange" size={32} />,
-    title: 'Acompañamiento de asesor',
-    body:  'Un asesor puede ayudarte a ordenar la información y definir el mejor camino logístico.',
+    icon:  <ShieldIcon primary="orange" size={32} />,
+    title: 'Escalabilidad con criterio',
+    body:  'Antes de prometer una solución, se revisan condiciones, rutas, volumen y necesidades reales del negocio.',
   },
 ]
 
 // ── Qué incluye — confirmado ──────────────────────────────────────────
 const INCLUYE_CONFIRMED = [
-  'Revisión de necesidades logísticas.',
-  'Análisis de origen, destino, frecuencia y volumen.',
+  'Revisión de necesidades de envío para tienda online.',
+  'Evaluación de volumen aproximado de pedidos.',
+  'Validación de cobertura y rutas disponibles.',
   'Orientación sobre el servicio más adecuado.',
-  'Evaluación de cobertura y condiciones disponibles.',
-  'Posibilidad de combinar servicios según el caso.',
+  'Posibilidad de canalizar a paquetería, logística o asesoría según el caso.',
   'Acompañamiento de asesor antes de confirmar.',
-  'Propuesta sujeta a validación operativa.',
+  'Propuesta sujeta a condiciones operativas.',
 ]
 
 // ── Debe validarse con asesor ─────────────────────────────────────────
 const INCLUYE_VALIDACION = [
-  'Tipo de operación o necesidad logística.',
-  'Frecuencia y volumen aproximado.',
-  'Rutas, zonas o puntos involucrados.',
+  'Volumen estimado de pedidos.',
+  'Frecuencia de envíos.',
+  'Tipo de productos o paquetes.',
+  'Zonas de entrega.',
+  'Necesidad de recolección.',
   'Condiciones especiales de manejo.',
-  'Requerimientos de coordinación.',
-  'Disponibilidad operativa.',
-  'Alcance real de la solución.',
+  'Alcance real de la operación.',
 ]
 
 // ── Checklist de asesoría ─────────────────────────────────────────────
 const ASESORIA_CHECKS = [
-  'Tipo de mercancía o envío.',
-  'Origen y destino de la operación.',
-  'Frecuencia estimada.',
-  'Volumen aproximado.',
-  'Zonas o rutas involucradas.',
-  'Condiciones especiales de manejo.',
-  'Objetivo principal de la operación.',
+  'Tipo de productos que vendes.',
+  'Volumen aproximado de pedidos.',
+  'Frecuencia de envíos.',
+  'Código postal o zona de origen.',
+  'Principales zonas de destino.',
+  'Peso y tamaño aproximado de los paquetes.',
+  'Necesidades especiales de recolección o coordinación.',
 ]
 
 // ── Servicios relacionados ────────────────────────────────────────────
@@ -104,16 +104,16 @@ const RELACIONADOS = [
     color: 'orange' as const,
   },
   {
-    id:    'ecommerce',
-    name:  'E-commerce',
-    tag:   'Envíos para e-commerce',
-    desc:  'Flujo pensado para tiendas, ventas online y envíos frecuentes.',
-    href:  '/servicios/ecommerce',
+    id:    'logistica',
+    name:  'Logística',
+    tag:   'Soluciones logísticas',
+    desc:  'Soluciones operativas a la medida para negocios con necesidades más complejas.',
+    href:  '/servicios/logistica',
     color: 'blue' as const,
   },
 ]
 
-export default function LogisticaPage() {
+export default function EcommercePage() {
   return (
     <>
       <Navbar />
@@ -123,11 +123,11 @@ export default function LogisticaPage() {
         {/* ── Hero ─────────────────────────────────────────────────── */}
         <section className="relative overflow-hidden bg-white">
 
-          {/* Teal radial — top right */}
+          {/* Orange radial — top right */}
           <div
             aria-hidden="true"
             className="pointer-events-none absolute -top-[60px] -right-[80px] w-[620px] h-[620px] rounded-full"
-            style={{ background: 'radial-gradient(circle, #E8F7FA 0%, transparent 70%)' }}
+            style={{ background: 'radial-gradient(circle, #FEF0E8 0%, transparent 70%)' }}
           />
           {/* Gray radial — bottom left */}
           <div
@@ -154,7 +154,7 @@ export default function LogisticaPage() {
                   </Link>
                 </li>
                 <li aria-hidden="true" className="text-ink-20 select-none">/</li>
-                <li className="text-ink">Logística</li>
+                <li className="text-ink">E-commerce</li>
               </ol>
             </nav>
 
@@ -167,22 +167,22 @@ export default function LogisticaPage() {
                   className="w-2 h-2 rounded-full bg-brand-orange flex-shrink-0"
                   aria-hidden="true"
                 />
-                Logística · BADA
+                Envíos para e-commerce · BADA
               </div>
 
               <h1
                 className="font-display font-black leading-[1.04] tracking-[-0.025em] text-ink mb-6"
                 style={{ fontSize: 'clamp(52px, 6.2vw, 80px)' }}
               >
-                Soluciones logísticas{' '}
+                Envíos para tiendas online{' '}
                 <em className="text-brand-orange" style={{ fontStyle: 'italic' }}>
-                  para operaciones que necesitan más que un envío.
+                  que necesitan crecer con más orden.
                 </em>
               </h1>
 
               <p className="text-[17px] text-ink-50 font-light leading-[1.75] mb-8 max-w-[560px]">
-                Servicio para revisar necesidades logísticas más amplias, coordinar procesos de
-                envío y orientar la mejor solución según cobertura, operación y condiciones
+                Servicio pensado para negocios que venden en línea y necesitan revisar una
+                operación de envíos recurrentes, según volumen, cobertura y condiciones
                 disponibles.
               </p>
 
@@ -226,7 +226,7 @@ export default function LogisticaPage() {
               <div
                 className="relative h-[360px] sm:h-[420px] rounded-[24px] overflow-hidden"
                 style={{
-                  background: 'linear-gradient(135deg, #14A3BE 0%, #0D7A90 40%, #1A2B3C 100%)',
+                  background: 'linear-gradient(135deg, #F16227 0%, #C44D10 40%, #14A3BE 100%)',
                 }}
                 aria-hidden="true"
               >
@@ -237,7 +237,7 @@ export default function LogisticaPage() {
                   }}
                 />
                 <div className="absolute bottom-8 left-8 opacity-[0.15]">
-                  <BuildingIcon primary="orange" size={96} />
+                  <ShoppingCartIcon primary="blue" size={96} />
                 </div>
               </div>
 
@@ -247,17 +247,17 @@ export default function LogisticaPage() {
                                 shadow-[0_8px_32px_rgba(15,25,35,0.12)]">
                   <div
                     className="absolute top-0 left-0 right-0 h-[3px] rounded-t-[20px]"
-                    style={{ background: 'linear-gradient(90deg, #14A3BE 0%, #F16227 100%)' }}
+                    style={{ background: 'linear-gradient(90deg, #F16227 0%, #14A3BE 100%)' }}
                     aria-hidden="true"
                   />
                   <p className="text-[12px] font-bold tracking-[0.1em] uppercase text-ink-50 mb-4">
-                    Logística · BADA
+                    E-commerce · BADA
                   </p>
                   <div className="flex flex-col gap-[10px]">
                     {[
-                      'Soluciones a la medida',
-                      'Coordinación operativa',
-                      'Revisión con asesor',
+                      'Pedidos recurrentes',
+                      'Paquetes para clientes finales',
+                      'Validación de volumen',
                       'Cobertura según condiciones',
                     ].map(item => (
                       <div key={item} className="flex items-center gap-3">
@@ -285,7 +285,7 @@ export default function LogisticaPage() {
                 className="font-display font-black text-ink tracking-[-0.025em]"
                 style={{ fontSize: 'clamp(32px, 4vw, 50px)', lineHeight: '1.06' }}
               >
-                ¿Logística es lo que necesitas?
+                ¿Envíos para e-commerce es lo que necesitas?
               </h2>
             </div>
 
@@ -311,14 +311,14 @@ export default function LogisticaPage() {
                   Ideal para
                 </h3>
                 <p className="text-[14px] text-ink-50 font-light leading-[1.6] mb-4">
-                  Negocios que necesitan revisar una operación más amplia que un envío individual.
+                  Negocios que venden en línea y necesitan ordenar sus envíos de forma recurrente.
                 </p>
                 <ul className="flex flex-col gap-3 list-none p-0 m-0">
                   {[
-                    'Operaciones con necesidades logísticas recurrentes.',
-                    'Empresas con distintos tipos de envío o rutas.',
-                    'Procesos que requieren coordinación previa.',
-                    'Casos que no encajan en mensajería o paquetería estándar.',
+                    'Tiendas online con pedidos frecuentes.',
+                    'Negocios que envían paquetes a clientes finales.',
+                    'Marcas que quieren revisar una operación de envíos más constante.',
+                    'Emprendimientos que buscan una solución más organizada que envíos aislados.',
                   ].map(item => (
                     <li key={item} className="flex items-start gap-[10px]">
                       <Check className="w-[14px] h-[14px] text-brand-orange flex-shrink-0 mt-[3px]" aria-hidden="true" />
@@ -348,14 +348,14 @@ export default function LogisticaPage() {
                   Mejor si necesitas
                 </h3>
                 <p className="text-[14px] text-ink-50 font-light leading-[1.6] mb-4">
-                  Analizar tu operación con un asesor para definir la solución logística más adecuada.
+                  Evaluar volumen, cobertura y condiciones para manejar tus envíos con mayor claridad.
                 </p>
                 <ul className="flex flex-col gap-3 list-none p-0 m-0">
                   {[
-                    'Revisar cobertura, frecuencia y volumen.',
-                    'Coordinar necesidades de envío más complejas.',
-                    'Evaluar rutas, servicios o procesos combinados.',
-                    'Recibir orientación antes de confirmar una solución.',
+                    'Revisar rutas y cobertura disponibles.',
+                    'Entender si tu volumen requiere asesoría.',
+                    'Coordinar paquetes recurrentes.',
+                    'Hablar con un asesor antes de definir la operación.',
                   ].map(item => (
                     <li key={item} className="flex items-start gap-[10px]">
                       <Check className="w-[14px] h-[14px] text-brand-blue flex-shrink-0 mt-[3px]" aria-hidden="true" />
@@ -418,9 +418,9 @@ export default function LogisticaPage() {
                   <li className="flex items-start gap-[10px]">
                     <span className="text-[14px] text-ink-50 flex-shrink-0 mt-[1px]" aria-hidden="true">—</span>
                     <span className="text-[14px] text-ink-80 font-light leading-[1.6]">
-                      Si vendes en línea y manejas envíos frecuentes, revisa{' '}
-                      <Link href="/servicios/ecommerce" className="underline underline-offset-2 hover:text-ink transition-colors">
-                        Envíos para e-commerce
+                      Si necesitas revisar una operación más amplia, revisa{' '}
+                      <Link href="/servicios/logistica" className="underline underline-offset-2 hover:text-ink transition-colors">
+                        Logística
                       </Link>.
                     </span>
                   </li>
@@ -440,11 +440,11 @@ export default function LogisticaPage() {
                 className="font-display font-black text-ink tracking-[-0.025em] mb-4"
                 style={{ fontSize: 'clamp(34px, 4vw, 52px)', lineHeight: '1.06' }}
               >
-                Lo que hace diferente a Logística BADA
+                Lo que hace diferente a Envíos para e-commerce BADA
               </h2>
               <p className="text-[15px] text-ink-50 font-light leading-[1.75] max-w-[560px]">
-                Una forma de revisar operaciones más complejas con acompañamiento, cobertura
-                administrable y criterios claros antes de proponer una solución.
+                Una forma de revisar envíos recurrentes para negocios digitales con enfoque
+                en volumen, cobertura y condiciones operativas.
               </p>
             </div>
 
@@ -518,8 +518,8 @@ export default function LogisticaPage() {
                   </p>
                 </div>
                 <p className="text-[14px] text-ink-80 font-light leading-[1.75] mb-5">
-                  Logística requiere revisar el contexto de la operación antes de definir alcance,
-                  condiciones y posible solución.
+                  Los envíos para e-commerce requieren revisar el contexto del negocio antes
+                  de definir una operación.
                 </p>
                 <ul className="flex flex-col gap-4 list-none p-0 m-0">
                   {INCLUYE_VALIDACION.map(item => (
@@ -541,7 +541,7 @@ export default function LogisticaPage() {
           </div>
         </section>
 
-        {/* ── Asesoría — información para evaluar tu operación ────────── */}
+        {/* ── Asesoría — información para evaluar tus envíos ──────────── */}
         <section className="py-[96px] bg-gray-50 border-b border-gray-200">
           <div className="max-w-site mx-auto px-5 sm:px-7">
             <div className="mb-12">
@@ -550,12 +550,12 @@ export default function LogisticaPage() {
                 className="font-display font-black text-ink tracking-[-0.025em] mb-4"
                 style={{ fontSize: 'clamp(34px, 4vw, 52px)', lineHeight: '1.06' }}
               >
-                Información que necesitamos para evaluar tu operación
+                Información que necesitamos para evaluar tus envíos
               </h2>
               <p className="text-[15px] text-ink-50 font-light leading-[1.75] max-w-[540px]">
-                Para orientar una solución logística, un asesor necesita entender qué se mueve,
-                con qué frecuencia, hacia dónde y bajo qué condiciones. Con esa información se
-                puede proponer una opción más adecuada.
+                Para orientar una solución de envíos para e-commerce, un asesor necesita
+                conocer tu volumen, tipo de productos, zonas de entrega y frecuencia de
+                operación.
               </p>
             </div>
 
@@ -592,11 +592,11 @@ export default function LogisticaPage() {
                   </div>
                   <h3 className="font-display font-black text-[22px] text-white
                                  leading-[1.15] tracking-[-0.02em] mb-3">
-                    Cuéntanos sobre tu operación
+                    Cuéntanos sobre tu tienda
                   </h3>
                   <p className="text-[14px] text-white/80 font-light leading-[1.75] mb-6">
-                    Comparte los datos generales de tu necesidad logística para revisar
-                    cobertura, condiciones y la solución más conveniente.
+                    Comparte los datos generales de tu operación para revisar si conviene
+                    paquetería, logística u otra solución de envío.
                   </p>
                   <div className="flex flex-col gap-3">
                     <a
@@ -642,7 +642,7 @@ export default function LogisticaPage() {
                 className="font-display font-black text-ink tracking-[-0.025em] mb-4"
                 style={{ fontSize: 'clamp(34px, 4vw, 52px)', lineHeight: '1.06' }}
               >
-                Respuestas sobre Logística
+                Respuestas sobre Envíos para e-commerce
               </h2>
               <p className="text-[15px] text-ink-50 font-light leading-[1.75] max-w-[500px]">
                 Si no encuentras lo que necesitas, tu asesor puede orientarte directamente.
@@ -650,7 +650,7 @@ export default function LogisticaPage() {
             </div>
 
             <div className="max-w-[720px]">
-              <LogisticaFaq />
+              <EcommerceFaq />
             </div>
           </div>
         </section>
@@ -724,20 +724,20 @@ export default function LogisticaPage() {
             className="pointer-events-none absolute inset-0"
             style={{
               background:
-                'linear-gradient(135deg, rgba(20,163,190,.10) 0%, transparent 50%, rgba(241,98,39,.08) 100%)',
+                'linear-gradient(135deg, rgba(241,98,39,.10) 0%, transparent 50%, rgba(20,163,190,.08) 100%)',
             }}
           />
           <div
             aria-hidden="true"
             className="pointer-events-none absolute -right-[80px] top-1/2 -translate-y-1/2
                        w-[460px] h-[460px] rounded-full"
-            style={{ border: '1px solid rgba(20,163,190,0.1)' }}
+            style={{ border: '1px solid rgba(241,98,39,0.1)' }}
           />
           <div
             aria-hidden="true"
             className="pointer-events-none absolute -right-[20px] top-1/2 -translate-y-1/2
                        w-[280px] h-[280px] rounded-full"
-            style={{ border: '1px solid rgba(20,163,190,0.06)' }}
+            style={{ border: '1px solid rgba(241,98,39,0.06)' }}
           />
 
           <div className="max-w-[640px] mx-auto px-5 sm:px-7 text-center relative z-[1]">
@@ -750,15 +750,15 @@ export default function LogisticaPage() {
               className="font-display font-black text-white tracking-[-0.025em] leading-[1.05] mb-6"
               style={{ fontSize: 'clamp(38px, 5vw, 62px)' }}
             >
-              Revisemos tu{' '}
+              Revisemos tus{' '}
               <em className="text-brand-orange" style={{ fontStyle: 'italic' }}>
-                operación logística.
+                envíos de e-commerce.
               </em>
             </h2>
 
             <p className="text-[16px] text-white/55 font-light leading-[1.75] mb-12 max-w-[480px] mx-auto">
-              Cuéntanos qué necesitas mover, con qué frecuencia y bajo qué condiciones para
-              evaluar la solución más adecuada.
+              Cuéntanos qué vendes, cuántos pedidos manejas y hacia dónde necesitas enviar
+              para evaluar la mejor opción disponible.
             </p>
 
             <div className="flex items-center justify-center gap-4 flex-wrap">
