@@ -14,7 +14,7 @@ export default function HowItWorks({ steps }: Props) {
 
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-[100px] -right-[100px] w-[500px] h-[500px] rounded-full"
+        className="pointer-events-none absolute -top-[100px] right-0 w-[500px] h-[500px] rounded-full"
         style={{ background: 'radial-gradient(circle, rgba(241,98,39,0.10), transparent 65%)' }}
       />
 

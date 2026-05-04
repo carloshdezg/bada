@@ -7,7 +7,7 @@ export default function FinalCTA() {
 
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-[100px] -right-[100px] w-[400px] h-[400px] rounded-full"
+        className="pointer-events-none absolute -top-[100px] right-0 w-[400px] h-[400px] rounded-full"
         style={{ background: 'rgba(255,255,255,0.08)' }}
       />
       <div

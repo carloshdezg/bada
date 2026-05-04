@@ -24,7 +24,7 @@ export default function HeroSection() {
       {/* Deco 1 — orange radial top-right */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-[60px] -right-[80px]
+        className="pointer-events-none absolute -top-[60px] right-0
                    w-[620px] h-[620px] rounded-full"
         style={{ background: 'radial-gradient(circle, #FEF0EA 0%, transparent 70%)' }}
       />

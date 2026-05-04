@@ -47,7 +47,8 @@ export default function ComparativaSection({ rows }: Props) {
           {/* Table */}
           <div className="bg-white border-[1.5px] border-gray-200 rounded-[20px]
                           overflow-hidden shadow-[0_4px_20px_rgba(15,25,35,0.1)]">
-            <table className="w-full border-collapse">
+            <div className="overflow-x-auto">
+            <table className="min-w-[560px] w-full border-collapse">
               <thead>
                 <tr>
                   <th
@@ -100,6 +101,7 @@ export default function ComparativaSection({ rows }: Props) {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
 
         </div>
