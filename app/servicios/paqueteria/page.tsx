@@ -774,14 +774,15 @@ export default function PaqueteriaPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Hablar con un asesor por WhatsApp (abre en nueva pestaña)"
-                className="inline-flex items-center gap-[10px]
-                           text-[15px] font-bold text-[#ffffff]
-                           px-[34px] py-4 rounded-[14px]
-                           border-2 border-[rgba(255,255,255,.45)]
-                           hover:bg-[rgba(255,255,255,.10)] hover:border-[rgba(255,255,255,.65)] hover:-translate-y-px
-                           transition-all duration-[250ms]"
+                className="group inline-flex items-center gap-[10px]
+                          px-[34px] py-4 rounded-[14px]
+                          border-2 border-[rgba(255,255,255,.45)]
+                          hover:bg-[rgba(255,255,255,.10)] hover:border-[rgba(255,255,255,.65)] hover:-translate-y-px
+                          transition-all duration-[250ms]"
               >
-                Hablar con un asesor
+                <span className="text-[15px] font-bold text-white group-hover:text-white">
+                  Hablar con un asesor
+                </span>
               </a>
             </div>
           </div>
