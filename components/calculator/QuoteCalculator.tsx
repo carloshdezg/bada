@@ -302,14 +302,14 @@ export default function QuoteCalculator({ initialService }: Props) {
       : `Hola, quiero información sobre el servicio de ${SERVICE_OPTIONS.find(s => s.id === form.service)?.label ?? form.service} de Transportes BADA.`
 
   return (
-    <div>
+    <div className="pb-[104px] lg:pb-0">
       <QuoteProgress
         step1={{ active: !isStep1Valid,                 done: isStep1Valid }}
         step2={{ active: isStep1Valid && !isStep2Valid, done: isStep2Valid }}
         step3={{ active: isStep1Valid && isStep2Valid,  done: false        }}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_370px] gap-7 items-start">
+      <div className="grid grid-cols-1 gap-7 lg:grid-cols-[minmax(0,1fr)_370px] lg:items-stretch">
         {/* ── LEFT COLUMN ── */}
         <div>
 
@@ -584,7 +584,12 @@ export default function QuoteCalculator({ initialService }: Props) {
         </div>
 
         {/* ── RIGHT COLUMN: sticky result panel ───────────────────────── */}
-        <aside className="sticky top-[100px] bg-white border border-[#DDE3EA] rounded-[28px] shadow-[0_16px_48px_rgba(15,25,35,.10)] p-7">
+        <aside className="relative hidden min-w-0 lg:block">
+          <div
+            data-quote-results-panel
+            style={{ position: 'sticky', top: '96px' }}
+            className="z-20 h-fit max-h-[calc(100vh-112px)] overflow-y-auto bg-white border border-[#DDE3EA] rounded-[28px] shadow-[0_16px_48px_rgba(15,25,35,.10)] p-7"
+          >
           <h3 className="font-display font-black text-[34px] tracking-[-0.035em] leading-[1] m-0 mb-3">
             Resultado
           </h3>
@@ -652,17 +657,16 @@ export default function QuoteCalculator({ initialService }: Props) {
               Hablar con un asesor
             </a>
           </div>
+          </div>
         </aside>
       </div>
 
       {/* Mobile sticky */}
-      {(hasPackage || requiresAdvisor) && (
-        <MobileQuoteSticky
-          service={form.service}
-          pesoCobrable={pesoCobrable}
-          result={result}
-        />
-      )}
+      <MobileQuoteSticky
+        service={form.service}
+        pesoCobrable={pesoCobrable}
+        result={result}
+      />
     </div>
   )
 }

@@ -63,7 +63,7 @@ export default function MobileQuoteSticky({ service, pesoCobrable, result }: Pro
                   ? (result.reason === 'over_dimension' || result.reason === 'over_weight')
                     ? 'El envío excede los límites para cotización automática.'
                     : 'Revisaremos cobertura y condiciones.'
-                  : pesoCobrable ? `Peso cobrable: ${pesoCobrable} kg` : '─'}
+                  : pesoCobrable ? `Peso cobrable: ${pesoCobrable} kg` : 'Completa los datos para calcular.'}
             </span>
           </div>
         </div>
