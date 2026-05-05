@@ -151,7 +151,7 @@ export default function HeroSection() {
                   Add a real blurDataURL from the optimized image at that point.
                 */}
                 <Image
-                  src="/images/hero/hero-placeholder.svg"
+                  src="/images/hero/bada-home.webp"
                   alt="Equipo operativo Transportes BADA"
                   fill
                   priority
