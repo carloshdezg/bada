@@ -12,6 +12,7 @@ import ChatIcon            from '@/components/icons/ChatIcon'
 import MapPinIcon          from '@/components/icons/MapPinIcon'
 import BoltIcon            from '@/components/icons/BoltIcon'
 import EcommerceFaq        from './_faq'
+import Image from 'next/image'
 
 export const metadata: Metadata = {
   title: 'Envíos para E-commerce — Servicios logísticos',
@@ -222,20 +223,20 @@ export default function EcommercePage() {
             {/* Visual block */}
             <div className="relative pb-[72px]">
 
-              {/* Gradient media area */}
+              {/* Image media area */}
               <div
-                className="relative h-[360px] sm:h-[420px] rounded-[24px] overflow-hidden"
-                style={{
-                  background: 'linear-gradient(135deg, #F16227 0%, #C44D10 40%, #14A3BE 100%)',
-                }}
+                className="relative h-[360px] sm:h-[420px] rounded-[24px] overflow-hidden bg-ink"
                 aria-hidden="true"
               >
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background: 'radial-gradient(ellipse at 20% 40%, rgba(255,255,255,0.08) 0%, transparent 55%)',
-                  }}
+                <Image
+                  src="/images/ecommerce/ecommerce-bada.webp"
+                  alt=""
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-cover"
+                  priority={false}
                 />
+
                 <div className="absolute bottom-8 left-8 opacity-[0.15]">
                   <ShoppingCartIcon primary="blue" size={96} />
                 </div>
@@ -243,8 +244,10 @@ export default function EcommercePage() {
 
               {/* Floating service card */}
               <div className="absolute bottom-0 right-4 sm:right-6 w-[260px] sm:w-[280px]">
-                <div className="relative bg-white border-[1.5px] border-gray-200 rounded-[20px] p-6
-                                shadow-[0_8px_32px_rgba(15,25,35,0.12)]">
+                <div
+                  className="relative bg-white border-[1.5px] border-gray-200 rounded-[20px] p-6
+                            shadow-[0_8px_32px_rgba(15,25,35,0.12)]"
+                >
                   <div
                     className="absolute top-0 left-0 right-0 h-[3px] rounded-t-[20px]"
                     style={{ background: 'linear-gradient(90deg, #F16227 0%, #14A3BE 100%)' }}

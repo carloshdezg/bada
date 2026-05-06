@@ -151,7 +151,7 @@ export default function ServiciosPage() {
                   {/* Hero image */}
                   <div className="relative h-[480px] rounded-[24px] overflow-hidden">
                     <Image
-                      src="/images/hero/hero-placeholder.svg"
+                      src="/images/servicios/servicios-bada.webp"
                       alt="Operación logística Transportes BADA"
                       fill
                       priority

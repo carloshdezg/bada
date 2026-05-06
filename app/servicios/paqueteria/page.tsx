@@ -10,6 +10,7 @@ import PhoneIcon      from '@/components/icons/PhoneIcon'
 import ClockIcon      from '@/components/icons/ClockIcon'
 import TrendingUpIcon from '@/components/icons/TrendingUpIcon'
 import PaqueteriaFaq  from './_faq'
+import Image from 'next/image'
 
 export const metadata: Metadata = {
   title: 'Paquetería — Servicios logísticos',
@@ -218,20 +219,30 @@ export default function PaqueteriaPage() {
             {/* Visual block */}
             <div className="relative pb-[72px]">
 
-              {/* Gradient media area */}
+              {/* Image media area */}
               <div
-                className="relative h-[360px] sm:h-[420px] rounded-[24px] overflow-hidden"
-                style={{
-                  background: 'linear-gradient(135deg, #E8530F 0%, #F16227 40%, #14A3BE 100%)',
-                }}
+                className="relative h-[360px] sm:h-[420px] rounded-[24px] overflow-hidden bg-ink"
                 aria-hidden="true"
               >
+                <Image
+                  src="/images/paqueteria/paqueteria-bada.webp"
+                  alt=""
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-cover"
+                  priority={false}
+                />
+
+
+                {/* Light texture / radial highlight */}
                 <div
                   className="absolute inset-0"
                   style={{
-                    background: 'radial-gradient(ellipse at 70% 35%, rgba(255,255,255,0.10) 0%, transparent 55%)',
+                    background:
+                      'radial-gradient(ellipse at 70% 35%, rgba(255,255,255,0.10) 0%, transparent 55%)',
                   }}
                 />
+
                 <div className="absolute bottom-8 left-8 opacity-[0.18]">
                   <PackageIcon primary="blue" size={96} />
                 </div>
@@ -241,11 +252,7 @@ export default function PaqueteriaPage() {
               <div className="absolute bottom-0 right-4 sm:right-6 w-[260px] sm:w-[280px]">
                 <div className="relative bg-white border-[1.5px] border-gray-200 rounded-[20px] p-6
                                 shadow-[0_8px_32px_rgba(15,25,35,0.12)]">
-                  <div
-                    className="absolute top-0 left-0 right-0 h-[3px] rounded-t-[20px]"
-                    style={{ background: 'linear-gradient(90deg, #E8530F 0%, #14A3BE 100%)' }}
-                    aria-hidden="true"
-                  />
+                  
                   <p className="text-[12px] font-bold tracking-[0.1em] uppercase text-ink-50 mb-4">
                     Paquetería · BADA
                   </p>

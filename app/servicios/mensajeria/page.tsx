@@ -10,6 +10,7 @@ import PackageIcon    from '@/components/icons/PackageIcon'
 import PhoneIcon      from '@/components/icons/PhoneIcon'
 import TrendingUpIcon from '@/components/icons/TrendingUpIcon'
 import MensajeriaFaq  from './_faq'
+import Image from 'next/image'
 
 export const metadata: Metadata = {
   title: 'Mensajería — Servicios logísticos',
@@ -230,58 +231,55 @@ export default function MensajeriaPage() {
 
             {/* Visual block — full editorial width, below copy */}
             <div className="relative pb-[72px]">
+            {/* Image media area */}
+            <div
+              className="relative h-[360px] sm:h-[420px] rounded-[24px] overflow-hidden bg-ink"
+              aria-hidden="true"
+            >
+              <Image
+                src="/images/mensajeria/mensajeria-bada.webp"
+                alt=""
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover"
+                priority={false}
+              />
 
-              {/* Gradient media area */}
-              <div
-                className="relative h-[360px] sm:h-[420px] rounded-[24px] overflow-hidden"
-                style={{
-                  background: 'linear-gradient(135deg, #F16227 0%, #E8530F 35%, #14A3BE 100%)',
-                }}
-                aria-hidden="true"
-              >
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background: 'radial-gradient(ellipse at 25% 45%, rgba(255,255,255,0.12) 0%, transparent 55%)',
-                  }}
-                />
-                <div className="absolute bottom-8 left-8 opacity-[0.18]">
-                  <BoltIcon primary="blue" size={96} />
-                </div>
+              <div className="absolute bottom-8 left-8 opacity-[0.18]">
+                <BoltIcon primary="blue" size={96} />
               </div>
-
-              {/* Floating service card — bottom-right overlay */}
-              <div className="absolute bottom-0 right-4 sm:right-6 w-[260px] sm:w-[280px]">
-                <div className="relative bg-white border-[1.5px] border-gray-200 rounded-[20px] p-6
-                                shadow-[0_8px_32px_rgba(15,25,35,0.12)]">
-                  <div
-                    className="absolute top-0 left-0 right-0 h-[3px] rounded-t-[20px]"
-                    style={{ background: 'linear-gradient(90deg, #F16227 0%, #14A3BE 100%)' }}
-                    aria-hidden="true"
-                  />
-                  <p className="text-[12px] font-bold tracking-[0.1em] uppercase text-ink-50 mb-4">
-                    Mensajería · BADA
-                  </p>
-                  <div className="flex flex-col gap-[10px]">
-                    {[
-                      'Recolección programada',
-                      'Documentos y paquetes pequeños',
-                      'Asesor directo asignado',
-                      'Sin call centers',
-                    ].map(item => (
-                      <div key={item} className="flex items-center gap-3">
-                        <div
-                          className="w-[6px] h-[6px] rounded-full bg-brand-orange flex-shrink-0"
-                          aria-hidden="true"
-                        />
-                        <span className="text-[13.5px] text-ink-80 font-medium">{item}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
             </div>
+
+            {/* Floating service card — bottom-right overlay */}
+            <div className="absolute bottom-0 right-4 sm:right-6 w-[260px] sm:w-[280px]">
+              <div className="relative bg-white border-[1.5px] border-gray-200 rounded-[20px] p-6 shadow-[0_8px_32px_rgba(15,25,35,0.12)]">
+                <div
+                  className="absolute top-0 left-0 right-0 h-[3px] rounded-t-[20px]"
+                  style={{ background: 'linear-gradient(90deg, #F16227 0%, #14A3BE 100%)' }}
+                  aria-hidden="true"
+                />
+                <p className="text-[12px] font-bold tracking-[0.1em] uppercase text-ink-50 mb-4">
+                  Mensajería · BADA
+                </p>
+                <div className="flex flex-col gap-[10px]">
+                  {[
+                    'Recolección programada',
+                    'Documentos y paquetes pequeños',
+                    'Asesor directo asignado',
+                    'Sin call centers',
+                  ].map(item => (
+                    <div key={item} className="flex items-center gap-3">
+                      <div
+                        className="w-[6px] h-[6px] rounded-full bg-brand-orange flex-shrink-0"
+                        aria-hidden="true"
+                      />
+                      <span className="text-[13.5px] text-ink-80 font-medium">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+</div>
           </div>
         </section>
 

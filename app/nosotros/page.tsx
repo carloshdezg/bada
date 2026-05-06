@@ -288,7 +288,7 @@ export default function NosotrosPage() {
                     <div className="absolute top-6 left-6 bg-white rounded-[14px] px-5 py-3
                                     shadow-[0_4px_20px_rgba(15,25,35,0.10)] border border-gray-100">
                       <p className="text-[11px] font-bold tracking-[0.1em] uppercase text-ink-50 mb-1">
-                        Cobertura
+                        Cobertura en
                       </p>
                       <p className="font-display font-black text-[24px] text-ink leading-none">
                         10 estados

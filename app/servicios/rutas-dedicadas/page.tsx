@@ -11,6 +11,7 @@ import BuildingIcon      from '@/components/icons/BuildingIcon'
 import ChatIcon          from '@/components/icons/ChatIcon'
 import PackageIcon       from '@/components/icons/PackageIcon'
 import RutasDedicadasFaq from './_faq'
+import Image from 'next/image'
 
 export const metadata: Metadata = {
   title: 'Rutas Dedicadas — Servicios logísticos',
@@ -220,20 +221,20 @@ export default function RutasDedicadasPage() {
             {/* Visual block */}
             <div className="relative pb-[72px]">
 
-              {/* Gradient media area */}
+              {/* Image media area */}
               <div
-                className="relative h-[360px] sm:h-[420px] rounded-[24px] overflow-hidden"
-                style={{
-                  background: 'linear-gradient(135deg, #1A2B3C 0%, #2D3E50 40%, #F16227 100%)',
-                }}
+                className="relative h-[360px] sm:h-[420px] rounded-[24px] overflow-hidden bg-ink"
                 aria-hidden="true"
               >
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background: 'radial-gradient(ellipse at 30% 60%, rgba(255,255,255,0.07) 0%, transparent 55%)',
-                  }}
+                <Image
+                  src="/images/rutas-dedicadas/rutas-dedicadas-bada.webp"
+                  alt=""
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-cover"
+                  priority={false}
                 />
+
                 <div className="absolute bottom-8 left-8 opacity-[0.15]">
                   <TruckIcon primary="orange" size={96} />
                 </div>
@@ -241,8 +242,10 @@ export default function RutasDedicadasPage() {
 
               {/* Floating service card */}
               <div className="absolute bottom-0 right-4 sm:right-6 w-[260px] sm:w-[280px]">
-                <div className="relative bg-white border-[1.5px] border-gray-200 rounded-[20px] p-6
-                                shadow-[0_8px_32px_rgba(15,25,35,0.12)]">
+                <div
+                  className="relative bg-white border-[1.5px] border-gray-200 rounded-[20px] p-6
+                            shadow-[0_8px_32px_rgba(15,25,35,0.12)]"
+                >
                   <div
                     className="absolute top-0 left-0 right-0 h-[3px] rounded-t-[20px]"
                     style={{ background: 'linear-gradient(90deg, #1A2B3C 0%, #F16227 100%)' }}
