@@ -232,6 +232,7 @@ export default function EcommercePage() {
                   src="/images/ecommerce/ecommerce-bada.webp"
                   alt=""
                   fill
+                  unoptimized
                   sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-cover"
                   priority={false}
