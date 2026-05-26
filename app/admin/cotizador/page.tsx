@@ -469,6 +469,8 @@ export default function AdminCotizadorPage() {
   const [openRouteDropdownId,   setOpenRouteDropdownId]   = useState<string | null>(null)
   const [deleteRouteConfirmId,  setDeleteRouteConfirmId]  = useState<string | null>(null)
   const [showImportModal,       setShowImportModal]       = useState(false)
+  const [pageSize,    setPageSize]    = useState<10 | 25 | 50 | 100>(25)
+  const [currentPage, setCurrentPage] = useState(1)
 
   // Versión activa de cobertura. En producción provendrá del Excel limpio
   // importado o del backend.
@@ -510,6 +512,8 @@ export default function AdminCotizadorPage() {
       activo: true, modo_cotizacion: 'Automática', isNew: true,
     }
     setRoutes(prev => [newRow, ...prev])
+    // La nueva fila se inserta al inicio: llevamos al usuario a la página 1.
+    setCurrentPage(1)
   }
 
   function duplicateRoute(rowKey: string) {
@@ -522,17 +526,27 @@ export default function AdminCotizadorPage() {
       estado: '', codigo_postal: '',
       isNew: true,
     }
-    setRoutes(prev => {
-      const idx = prev.findIndex(r => r._rowKey === rowKey)
-      const next = [...prev]
-      next.splice(idx + 1, 0, newRow)
-      return next
-    })
+    const idx = routes.findIndex(r => r._rowKey === rowKey)
+    const nextRoutes = [...routes]
+    nextRoutes.splice(idx + 1, 0, newRow)
+    setRoutes(nextRoutes)
+    // Llevar al usuario a la página donde aparece la nueva fila después de
+    // aplicar filtros. Si los filtros la ocultan, dejamos la página intacta.
+    const newIdxInFiltered = nextRoutes.filter(routeMatchesFilters).findIndex(r => r._rowKey === newRow._rowKey)
+    if (newIdxInFiltered >= 0) {
+      setCurrentPage(Math.floor(newIdxInFiltered / pageSize) + 1)
+    }
   }
 
   function deleteRoute(rowKey: string) {
-    setRoutes(prev => prev.filter(r => r._rowKey !== rowKey))
+    const nextRoutes = routes.filter(r => r._rowKey !== rowKey)
+    setRoutes(nextRoutes)
     setDeleteRouteConfirmId(null)
+    // Si la página actual queda vacía tras eliminar, regresar a la página
+    // anterior disponible (mínimo 1).
+    const nextFilteredCount = nextRoutes.filter(routeMatchesFilters).length
+    const nextTotalPages    = Math.max(1, Math.ceil(nextFilteredCount / pageSize))
+    if (currentPage > nextTotalPages) setCurrentPage(nextTotalPages)
   }
 
   const routeIdCounts = routes.reduce<Record<string, number>>((acc, r) => {
@@ -547,7 +561,9 @@ export default function AdminCotizadorPage() {
     return acc
   }, {})
 
-  const filteredRoutes = routes.filter(r => {
+  // Predicado de filtros: extraído para que duplicateRoute pueda calcular
+  // la página donde caerá el nuevo registro sin duplicar lógica.
+  function routeMatchesFilters(r: AdminRouteRow): boolean {
     if (routeSearch) {
       const q = routeSearch.toLowerCase()
       const hit =
@@ -563,7 +579,26 @@ export default function AdminCotizadorPage() {
     if (filterRActive === 'active'   && !r.activo) return false
     if (filterRActive === 'inactive' &&  r.activo) return false
     return true
-  })
+  }
+
+  const filteredRoutes = routes.filter(routeMatchesFilters)
+
+  // ── Paginación (client-side, siempre activa) ─────────────────────
+  const routeFiltersActive =
+    routeSearch.trim() !== '' ||
+    filterRType   !== 'all' ||
+    filterRActive !== 'all' ||
+    filterRMode   !== 'all' ||
+    filterRZone   !== 'all'
+
+  const filteredCount = filteredRoutes.length
+  const totalPages    = Math.max(1, Math.ceil(filteredCount / pageSize))
+  // safePage como defensa: si currentPage queda fuera del rango actual
+  // (filtros más restrictivos, eliminación), el slice nunca renderiza vacío.
+  const safePage      = Math.min(Math.max(1, currentPage), totalPages)
+  const pageStart     = (safePage - 1) * pageSize
+  const pageEnd       = Math.min(pageStart + pageSize, filteredCount)
+  const paginatedRoutes = filteredRoutes.slice(pageStart, pageEnd)
 
   // ── Messages state ────────────────────────────────────────────────
   const [messages, setMessages] = useState<MessagesState>(MESSAGES_SEED)
@@ -1157,7 +1192,7 @@ export default function AdminCotizadorPage() {
                   type="text"
                   placeholder="Buscar CP, estado, ruta o población…"
                   value={routeSearch}
-                  onChange={e => setRouteSearch(e.target.value)}
+                  onChange={e => { setRouteSearch(e.target.value); setCurrentPage(1) }}
                   className="w-full border border-gray-200 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-700
                              focus:outline-none focus:ring-1 focus:ring-brand-orange/40 bg-white placeholder:text-slate-400"
                 />
@@ -1167,7 +1202,7 @@ export default function AdminCotizadorPage() {
                 <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Tarifa</label>
                 <select
                   value={filterRType}
-                  onChange={e => setFilterRType(e.target.value as typeof filterRType)}
+                  onChange={e => { setFilterRType(e.target.value as typeof filterRType); setCurrentPage(1) }}
                   className="border border-gray-200 rounded-md px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-orange/40 bg-white"
                 >
                   <option value="all">Todas</option>
@@ -1180,7 +1215,7 @@ export default function AdminCotizadorPage() {
                 <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Estado</label>
                 <select
                   value={filterRActive}
-                  onChange={e => setFilterRActive(e.target.value as typeof filterRActive)}
+                  onChange={e => { setFilterRActive(e.target.value as typeof filterRActive); setCurrentPage(1) }}
                   className="border border-gray-200 rounded-md px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-orange/40 bg-white"
                 >
                   <option value="all">Todas</option>
@@ -1193,7 +1228,7 @@ export default function AdminCotizadorPage() {
                 <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Modo</label>
                 <select
                   value={filterRMode}
-                  onChange={e => setFilterRMode(e.target.value as typeof filterRMode)}
+                  onChange={e => { setFilterRMode(e.target.value as typeof filterRMode); setCurrentPage(1) }}
                   className="border border-gray-200 rounded-md px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-orange/40 bg-white"
                 >
                   <option value="all">Todos</option>
@@ -1206,7 +1241,7 @@ export default function AdminCotizadorPage() {
                 <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Zona</label>
                 <select
                   value={filterRZone}
-                  onChange={e => setFilterRZone(e.target.value as typeof filterRZone)}
+                  onChange={e => { setFilterRZone(e.target.value as typeof filterRZone); setCurrentPage(1) }}
                   className="border border-gray-200 rounded-md px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-orange/40 bg-white"
                 >
                   <option value="all">Todas</option>
@@ -1217,7 +1252,9 @@ export default function AdminCotizadorPage() {
               </div>
 
               <p className="ml-auto text-xs text-slate-400 whitespace-nowrap">
-                {filteredRoutes.length} / {routes.length} rutas
+                {routeFiltersActive
+                  ? `${filteredCount} / ${routes.length} rutas filtradas`
+                  : `${routes.length} rutas`}
               </p>
             </div>
 
@@ -1239,7 +1276,14 @@ export default function AdminCotizadorPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {filteredRoutes.map(r => {
+                    {filteredCount === 0 && (
+                      <tr>
+                        <td colSpan={16} className="text-center px-3 py-8 text-sm text-slate-400">
+                          Sin coberturas para mostrar
+                        </td>
+                      </tr>
+                    )}
+                    {paginatedRoutes.map(r => {
                       const isRouteDuplicate = (routeIdCounts[r.ruta_id] ?? 0) > 1
                       const cpKey = r.estado.trim() && r.codigo_postal.trim()
                         ? `${normalizeEstado(r.estado)}|${r.codigo_postal.trim()}`
@@ -1443,6 +1487,66 @@ export default function AdminCotizadorPage() {
                     })}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Paginación client-side — siempre visible */}
+              <div className="px-6 py-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3">
+                <p className="text-xs text-slate-500">
+                  {filteredCount === 0
+                    ? 'Sin coberturas para mostrar'
+                    : `Mostrando ${pageStart + 1}–${pageEnd} de ${filteredCount} ${
+                        routeFiltersActive ? 'coberturas filtradas' : 'coberturas'
+                      }`}
+                </p>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex items-center gap-1.5">
+                    <label
+                      htmlFor="route-page-size"
+                      className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider"
+                    >
+                      Por página
+                    </label>
+                    <select
+                      id="route-page-size"
+                      value={pageSize}
+                      onChange={e => { setPageSize(Number(e.target.value) as 10 | 25 | 50 | 100); setCurrentPage(1) }}
+                      className="border border-gray-200 rounded-md px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-orange/40 bg-white"
+                    >
+                      <option value={10}>10</option>
+                      <option value={25}>25</option>
+                      <option value={50}>50</option>
+                      <option value={100}>100</option>
+                    </select>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={safePage <= 1}
+                      aria-label="Página anterior"
+                      className="px-3 py-1 text-xs font-semibold rounded border border-gray-200 text-slate-700 bg-white hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      Anterior
+                    </button>
+                    <span
+                      className="text-xs text-slate-600 px-2 whitespace-nowrap"
+                      aria-live="polite"
+                    >
+                      Página {safePage} de {totalPages}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={safePage >= totalPages}
+                      aria-label="Página siguiente"
+                      className="px-3 py-1 text-xs font-semibold rounded border border-gray-200 text-slate-700 bg-white hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      Siguiente
+                    </button>
+                  </div>
+                </div>
               </div>
 
               <div className="px-6 py-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3">
