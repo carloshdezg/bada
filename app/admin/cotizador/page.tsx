@@ -3,12 +3,12 @@
 // TODO: proteger esta página con autenticación real del backend/AWS de BADA.
 // TODO: reemplazar todos los datos seed/locales por endpoints reales una vez disponibles.
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
   Settings, Layers, DollarSign, MapPin, MessageSquare,
   Save, Check, AlertTriangle, Plus, Upload, Search,
-  LogOut, Info,
+  LogOut, Info, MoreHorizontal,
 } from 'lucide-react'
 import { calculatorConfig } from '@/lib/calculator/config'
 import { seedTariffs } from '@/lib/calculator/seedTariffs'
@@ -313,22 +313,36 @@ export default function AdminCotizadorPage() {
   const [tariffs, setTariffs] = useState<AdminTariffRow[]>(() => seedTariffs.map(seedToAdmin))
   const [filterTipo, setFilterTipo] = useState<'all' | 'Local' | 'Foránea'>('all')
   const [filterUso,  setFilterUso]  = useState<'all' | 'Público' | 'Asesor'>('all')
-  const [selectedTariffId, setSelectedTariffId] = useState<string | null>(null)
-  const [deleteConfirmId,  setDeleteConfirmId]   = useState<string | null>(null)
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+
+  // Versión activa del tarifario completo. En producción provendrá del Excel
+  // importado o del backend. Por ahora se deriva del seed local.
+  const activeTariffVersion = seedTariffs[0]?.version_tarifario ?? 'v2026'
+
+  // Cierra el dropdown de Acciones al hacer click fuera.
+  useEffect(() => {
+    if (!openDropdownId) return
+    function handleClick(e: MouseEvent) {
+      const target = e.target as HTMLElement | null
+      if (!target?.closest('[data-tariff-actions]')) {
+        setOpenDropdownId(null)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [openDropdownId])
 
   function updateTariff(oldId: string, patch: Partial<AdminTariffRow>) {
-    let nextId = oldId
     setTariffs(prev => prev.map(t => {
       if (t.tarifa_id !== oldId) return t
       const updated = { ...t, ...patch }
       if ('tipo_tarifa' in patch || 'rango_desde' in patch || 'rango_hasta' in patch) {
         updated.tarifa_id   = buildTariffId(updated.tipo_tarifa, updated.rango_desde, updated.rango_hasta)
         updated.rango_guias = buildRangoGuias(updated.rango_desde, updated.rango_hasta)
-        nextId = updated.tarifa_id
       }
       return updated
     }))
-    if (nextId !== oldId) setSelectedTariffId(prev => prev === oldId ? nextId : prev)
   }
 
   function addTariff() {
@@ -339,13 +353,12 @@ export default function AdminCotizadorPage() {
       tarifa_5kg: 0, tarifa_10kg: 0, tarifa_15kg: 0,
       tarifa_20kg: 0, tarifa_30kg: 0, precio_kg_adicional: 0,
       precio_base_incluye_iva: false, activo: true,
-      version_tarifario: 'v2026',
+      version_tarifario: activeTariffVersion,
       vigencia_desde: new Date().toISOString().split('T')[0],
       vigencia_hasta: null, uso: 'Asesor',
       notas: 'Nueva tarifa.', moneda: 'MXN', isNew: true,
     }
     setTariffs(prev => [newRow, ...prev])
-    setSelectedTariffId(tempId)
   }
 
   function duplicateTariff(id: string) {
@@ -362,16 +375,10 @@ export default function AdminCotizadorPage() {
       next.splice(idx + 1, 0, newRow)
       return next
     })
-    setSelectedTariffId(tempId)
-  }
-
-  function deactivateTariff(id: string) {
-    setTariffs(prev => prev.map(t => t.tarifa_id === id ? { ...t, activo: false } : t))
   }
 
   function deleteTariff(id: string) {
     setTariffs(prev => prev.filter(t => t.tarifa_id !== id))
-    if (selectedTariffId === id) setSelectedTariffId(null)
     setDeleteConfirmId(null)
   }
 
@@ -597,6 +604,30 @@ export default function AdminCotizadorPage() {
               </span>
             </div>
 
+            {/* Versión activa global del tarifario */}
+            <div className="bg-white border border-gray-200 rounded-xl px-5 py-3 shadow-sm flex flex-wrap items-center gap-x-6 gap-y-1.5 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-slate-500 uppercase tracking-wider">Versión activa del tarifario</span>
+                <Badge className="bg-slate-100 text-slate-700 border-slate-200 font-mono text-[11px]">
+                  {activeTariffVersion}
+                </Badge>
+              </div>
+              <span className="text-slate-400">
+                Fuente: <span className="text-slate-600">seed/local · pendiente Excel/backend</span>
+              </span>
+              <span className="text-slate-400">
+                Última carga: <span className="text-slate-600">pendiente backend</span>
+              </span>
+            </div>
+
+            {/* Nota: la versión se define por carga del tarifario, no por fila */}
+            <div className="flex gap-2 items-start bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-xs text-slate-500">
+              <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+              <span>
+                La versión del tarifario se define por carga/importación de Excel o desde backend. No se edita por fila.
+              </span>
+            </div>
+
             {/* Toolbar + Filters */}
             <div className="bg-white border border-gray-200 rounded-xl px-5 py-4 shadow-sm flex flex-wrap gap-3 items-center">
               <button
@@ -605,23 +636,7 @@ export default function AdminCotizadorPage() {
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-brand-orange text-white hover:opacity-90 transition-opacity"
               >
                 <Plus className="w-3.5 h-3.5" />
-                Agregar tarifa
-              </button>
-              <button
-                type="button"
-                disabled={!selectedTariffId}
-                onClick={() => { if (selectedTariffId) duplicateTariff(selectedTariffId) }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 text-slate-600 bg-white hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Duplicar seleccionada
-              </button>
-              <button
-                type="button"
-                disabled={!selectedTariffId || !(tariffs.find(t => t.tarifa_id === selectedTariffId)?.activo)}
-                onClick={() => { if (selectedTariffId) deactivateTariff(selectedTariffId) }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 text-slate-600 bg-white hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Desactivar seleccionada
+                Nueva tarifa
               </button>
 
               <div className="w-px h-5 bg-gray-200 hidden sm:block" />
@@ -665,13 +680,13 @@ export default function AdminCotizadorPage() {
             {/* Table */}
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="text-sm" style={{ minWidth: '1480px', width: '100%' }}>
+                <table className="text-sm" style={{ minWidth: '1380px', width: '100%' }}>
                   <thead>
                     <tr className="bg-slate-50 border-b border-gray-200">
                       {[
                         'ID técnico', 'Tipo', 'Desde', 'Hasta', 'Audiencia',
                         'Hasta 5 kg', 'Hasta 10 kg', 'Hasta 15 kg', 'Hasta 20 kg', 'Hasta 30 kg', 'Kg adicional',
-                        'Moneda', 'Inc. IVA', 'Activo', 'Versión', 'Acciones',
+                        'Moneda', 'Inc. IVA', 'Activo', 'Acciones',
                       ].map(h => (
                         <th key={h} className="px-3 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">
                           {h}
@@ -681,16 +696,14 @@ export default function AdminCotizadorPage() {
                   </thead>
                   <tbody className="divide-y divide-gray-50">
                     {filteredTariffs.map(t => {
-                      const isSelected    = selectedTariffId === t.tarifa_id
                       const isDuplicate   = (tariffIdCounts[t.tarifa_id] ?? 0) > 1
                       const hasInvalidRange = typeof t.rango_desde === 'number' && typeof t.rango_hasta === 'number' && t.rango_desde > t.rango_hasta
+                      const isDropdownOpen = openDropdownId === t.tarifa_id
                       return (
                         <tr
                           key={t.tarifa_id}
-                          onClick={() => setSelectedTariffId(isSelected ? null : t.tarifa_id)}
                           className={[
-                            'cursor-pointer transition-colors',
-                            isSelected ? 'bg-orange-50 ring-1 ring-inset ring-brand-orange/20' : 'hover:bg-slate-50',
+                            'transition-colors hover:bg-slate-50',
                             !t.activo ? 'opacity-50' : '',
                           ].filter(Boolean).join(' ')}
                         >
@@ -811,70 +824,47 @@ export default function AdminCotizadorPage() {
                             </div>
                           </td>
 
-                          {/* Versión */}
-                          <td className="px-3 py-2.5" onClick={e => e.stopPropagation()}>
-                            <input
-                              type="text"
-                              value={t.version_tarifario}
-                              onChange={e => updateTariff(t.tarifa_id, { version_tarifario: e.target.value })}
-                              className="w-[68px] border border-gray-200 rounded px-2 py-1 text-[11px] font-mono text-slate-600 focus:outline-none focus:ring-1 focus:ring-brand-orange/40 bg-white"
-                            />
-                          </td>
-
-                          {/* Acciones */}
-                          <td className="px-3 py-2.5 whitespace-nowrap" onClick={e => e.stopPropagation()}>
-                            <div className="flex items-center gap-1 flex-wrap">
+                          {/* Acciones — dropdown compacto */}
+                          <td className="px-3 py-2.5 whitespace-nowrap text-right">
+                            <div className="relative inline-block" data-tariff-actions>
                               <button
                                 type="button"
-                                onClick={() => duplicateTariff(t.tarifa_id)}
-                                className="px-2 py-1 text-[10px] font-semibold rounded border border-gray-200 text-slate-600 hover:bg-gray-50 transition-colors"
+                                onClick={() => setOpenDropdownId(prev => prev === t.tarifa_id ? null : t.tarifa_id)}
+                                aria-haspopup="menu"
+                                aria-expanded={isDropdownOpen}
+                                aria-label="Acciones de la tarifa"
+                                className="inline-flex items-center justify-center w-8 h-7 rounded border border-gray-200 text-slate-500 hover:bg-gray-50 hover:text-slate-700 transition-colors"
                               >
-                                Duplicar
+                                <MoreHorizontal className="w-4 h-4" />
                               </button>
-                              {t.activo ? (
-                                <button
-                                  type="button"
-                                  onClick={() => deactivateTariff(t.tarifa_id)}
-                                  className="px-2 py-1 text-[10px] font-semibold rounded border border-gray-200 text-slate-600 hover:bg-gray-50 transition-colors"
+                              {isDropdownOpen && (
+                                <div
+                                  role="menu"
+                                  className="absolute right-0 z-20 mt-1 w-40 bg-white border border-gray-200 rounded-lg shadow-lg py-1"
                                 >
-                                  Desactivar
-                                </button>
-                              ) : (
-                                <button
-                                  type="button"
-                                  onClick={() => updateTariff(t.tarifa_id, { activo: true })}
-                                  className="px-2 py-1 text-[10px] font-semibold rounded border border-green-200 text-green-700 hover:bg-green-50 transition-colors"
-                                >
-                                  Activar
-                                </button>
-                              )}
-                              {t.isNew && (
-                                deleteConfirmId === t.tarifa_id ? (
-                                  <div className="flex items-center gap-1">
-                                    <button
-                                      type="button"
-                                      onClick={() => deleteTariff(t.tarifa_id)}
-                                      className="px-2 py-1 text-[10px] font-semibold rounded bg-red-500 text-white hover:bg-red-600 transition-colors"
-                                    >
-                                      Confirmar
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => setDeleteConfirmId(null)}
-                                      className="px-2 py-1 text-[10px] font-semibold rounded border border-gray-200 text-slate-500 hover:bg-gray-50 transition-colors"
-                                    >
-                                      Cancelar
-                                    </button>
-                                  </div>
-                                ) : (
                                   <button
                                     type="button"
-                                    onClick={() => setDeleteConfirmId(t.tarifa_id)}
-                                    className="px-2 py-1 text-[10px] font-semibold rounded border border-red-200 text-red-500 hover:bg-red-50 transition-colors"
+                                    role="menuitem"
+                                    onClick={() => {
+                                      duplicateTariff(t.tarifa_id)
+                                      setOpenDropdownId(null)
+                                    }}
+                                    className="block w-full text-left px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 transition-colors"
+                                  >
+                                    Duplicar
+                                  </button>
+                                  <button
+                                    type="button"
+                                    role="menuitem"
+                                    onClick={() => {
+                                      setDeleteConfirmId(t.tarifa_id)
+                                      setOpenDropdownId(null)
+                                    }}
+                                    className="block w-full text-left px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors"
                                   >
                                     Eliminar
                                   </button>
-                                )
+                                </div>
                               )}
                             </div>
                           </td>
@@ -899,6 +889,63 @@ export default function AdminCotizadorPage() {
             </div>
 
             <TodoNote endpoint="GET/PATCH /api/admin/calculator/tariffs" />
+
+            {/* Modal de confirmación estricta para eliminar tarifa */}
+            {deleteConfirmId && (() => {
+              const target = tariffs.find(t => t.tarifa_id === deleteConfirmId)
+              return (
+                <div
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="delete-tariff-title"
+                  className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+                  onClick={() => setDeleteConfirmId(null)}
+                >
+                  <div
+                    className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                        <AlertTriangle className="w-5 h-5 text-red-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 id="delete-tariff-title" className="text-base font-bold text-slate-900">
+                          ¿Eliminar esta tarifa?
+                        </h3>
+                        <p className="text-sm text-slate-600 mt-2 leading-relaxed">
+                          Esta acción eliminará la tarifa{' '}
+                          {target && (
+                            <span className="font-mono text-[11px] text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded">
+                              {target.tarifa_id}
+                            </span>
+                          )}{' '}
+                          de la tabla. Si esta tarifa se usa en producción, podría afectar la
+                          configuración del cotizador cuando se conecte al backend. Esta acción
+                          no se puede deshacer en esta interfaz.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-2 mt-6">
+                      <button
+                        type="button"
+                        onClick={() => setDeleteConfirmId(null)}
+                        className="px-4 py-2 text-sm font-semibold rounded-lg border border-gray-200 text-slate-700 hover:bg-gray-50 transition-colors"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteTariff(deleteConfirmId)}
+                        className="px-4 py-2 text-sm font-semibold rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
+                      >
+                        Sí, eliminar tarifa
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })()}
           </div>
         )}
 
