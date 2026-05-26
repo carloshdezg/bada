@@ -102,6 +102,83 @@ function seedToAdmin(t: TariffRow): AdminTariffRow {
 }
 
 // ─────────────────────────────────────────────────────────────────────
+// Rutas / cobertura admin helpers
+// ─────────────────────────────────────────────────────────────────────
+
+type AdminRouteZone   = 'Metro' | 'Foráneo' | 'Especial'
+type AdminRouteMode   = 'Automática' | 'Asesor'
+type AdminRouteTarifa = 'Local' | 'Foránea'
+
+interface AdminRouteRow {
+  _rowKey: string
+  ruta_id: string
+  estado: string
+  ruta: string
+  poblacion: string
+  codigo_postal: string
+  lunes: boolean
+  martes: boolean
+  miercoles: boolean
+  jueves: boolean
+  viernes: boolean
+  sabado: boolean
+  zona: AdminRouteZone
+  tipo_tarifa: AdminRouteTarifa
+  activo: boolean
+  modo_cotizacion: AdminRouteMode
+  isNew: boolean
+}
+
+// Genera un identificador estable para uso interno como React key.
+// Importante: NO usar ruta_id (que se recalcula al editar Estado/CP) como key,
+// porque cualquier cambio remonta la fila y los inputs pierden foco.
+function makeRowKey(): string {
+  return `row_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
+}
+
+function normalizeEstado(s: string): string {
+  return s
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toUpperCase()
+    .trim()
+    .replace(/\s+/g, '_')
+    .replace(/[^A-Z0-9_]/g, '')
+}
+
+function buildRouteId(estado: string, cp: string): string {
+  const estadoNorm = normalizeEstado(estado)
+  const cpTrim     = cp.trim()
+  if (!estadoNorm || !cpTrim) return 'COV_PENDIENTE'
+  return `COV_${estadoNorm}_${cpTrim}`
+}
+
+function seedRouteToAdmin(r: RouteCoverageRow, idx: number): AdminRouteRow {
+  const zona: AdminRouteZone = r.zona_operativa === 'Área Metropolitana' ? 'Metro' : 'Foráneo'
+  const modo: AdminRouteMode = r.cotizacion_automatica && !r.requiere_asesor ? 'Automática' : 'Asesor'
+  return {
+    // Determinístico para evitar mismatches de hidratación SSR/cliente.
+    _rowKey: `seed_${idx}`,
+    ruta_id: buildRouteId(r.estado, r.codigo_postal),
+    estado: r.estado,
+    ruta: r.ruta,
+    poblacion: r.poblacion,
+    codigo_postal: r.codigo_postal,
+    lunes: r.lunes, martes: r.martes, miercoles: r.miercoles,
+    jueves: r.jueves, viernes: r.viernes, sabado: r.sabado,
+    zona, tipo_tarifa: r.tipo_tarifa, activo: r.activo,
+    modo_cotizacion: modo, isNew: false,
+  }
+}
+
+function isRouteRowComplete(r: AdminRouteRow): boolean {
+  if (!r.estado.trim() || !r.ruta.trim() || !r.poblacion.trim()) return false
+  if (!/^\d{5}$/.test(r.codigo_postal.trim())) return false
+  if (r.ruta_id === 'COV_PENDIENTE') return false
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────
 // Seed data copies (local state — not connected to any backend yet)
 // TODO: reemplazar datos seed/locales por endpoints reales.
 // ─────────────────────────────────────────────────────────────────────
@@ -221,17 +298,6 @@ function HandoffBanner() {
       </span>
     </div>
   )
-}
-
-function daysLabel(r: RouteCoverageRow): string {
-  return [
-    r.lunes     && 'L',
-    r.martes    && 'M',
-    r.miercoles && 'X',
-    r.jueves    && 'J',
-    r.viernes   && 'V',
-    r.sabado    && 'S',
-  ].filter(Boolean).join('·') || '—'
 }
 
 function InputField({
@@ -394,22 +460,108 @@ export default function AdminCotizadorPage() {
   })
 
   // ── Routes state ──────────────────────────────────────────────────
-  const [routes, setRoutes] = useState<RouteCoverageRow[]>(seedRoutes)
-  const [searchCp,    setSearchCp]    = useState('')
-  const [filterRType, setFilterRType] = useState<'all' | 'Local' | 'Foránea'>('all')
-  const [filterRMode, setFilterRMode] = useState<'all' | 'auto' | 'advisor' | 'inactive'>('all')
+  const [routes, setRoutes] = useState<AdminRouteRow[]>(() => seedRoutes.map(seedRouteToAdmin))
+  const [routeSearch,    setRouteSearch]    = useState('')
+  const [filterRType,    setFilterRType]    = useState<'all' | 'Local' | 'Foránea'>('all')
+  const [filterRActive,  setFilterRActive]  = useState<'all' | 'active' | 'inactive'>('all')
+  const [filterRMode,    setFilterRMode]    = useState<'all' | 'Automática' | 'Asesor'>('all')
+  const [filterRZone,    setFilterRZone]    = useState<'all' | AdminRouteZone>('all')
+  const [openRouteDropdownId,   setOpenRouteDropdownId]   = useState<string | null>(null)
+  const [deleteRouteConfirmId,  setDeleteRouteConfirmId]  = useState<string | null>(null)
+  const [showImportModal,       setShowImportModal]       = useState(false)
 
-  function updateRoute(id: string, patch: Partial<RouteCoverageRow>) {
-    setRoutes(prev => prev.map(r => r.ruta_id === id ? { ...r, ...patch } : r))
+  // Versión activa de cobertura. En producción provendrá del Excel limpio
+  // importado o del backend.
+  const activeCoverageVersion = seedRoutes[0]?.version_cobertura ?? 'cobertura-2025'
+  const [importVersion, setImportVersion] = useState(activeCoverageVersion)
+
+  // Cierra el dropdown de acciones de rutas al hacer click fuera.
+  useEffect(() => {
+    if (!openRouteDropdownId) return
+    function handleClick(e: MouseEvent) {
+      const target = e.target as HTMLElement | null
+      if (!target?.closest('[data-route-actions]')) {
+        setOpenRouteDropdownId(null)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [openRouteDropdownId])
+
+  // Todos los lookups usan _rowKey (estable) en vez de ruta_id (recalculado).
+  function updateRoute(rowKey: string, patch: Partial<AdminRouteRow>) {
+    setRoutes(prev => prev.map(r => {
+      if (r._rowKey !== rowKey) return r
+      const updated = { ...r, ...patch }
+      if ('estado' in patch || 'codigo_postal' in patch) {
+        updated.ruta_id = buildRouteId(updated.estado, updated.codigo_postal)
+      }
+      return updated
+    }))
   }
 
+  function addRoute() {
+    const newRow: AdminRouteRow = {
+      _rowKey: makeRowKey(),
+      ruta_id: 'COV_PENDIENTE',
+      estado: '', ruta: '', poblacion: '', codigo_postal: '',
+      lunes: true, martes: true, miercoles: true, jueves: true, viernes: true, sabado: false,
+      zona: 'Metro', tipo_tarifa: 'Local',
+      activo: true, modo_cotizacion: 'Automática', isNew: true,
+    }
+    setRoutes(prev => [newRow, ...prev])
+  }
+
+  function duplicateRoute(rowKey: string) {
+    const src = routes.find(r => r._rowKey === rowKey)
+    if (!src) return
+    const newRow: AdminRouteRow = {
+      ...src,
+      _rowKey: makeRowKey(),
+      ruta_id: 'COV_PENDIENTE',
+      estado: '', codigo_postal: '',
+      isNew: true,
+    }
+    setRoutes(prev => {
+      const idx = prev.findIndex(r => r._rowKey === rowKey)
+      const next = [...prev]
+      next.splice(idx + 1, 0, newRow)
+      return next
+    })
+  }
+
+  function deleteRoute(rowKey: string) {
+    setRoutes(prev => prev.filter(r => r._rowKey !== rowKey))
+    setDeleteRouteConfirmId(null)
+  }
+
+  const routeIdCounts = routes.reduce<Record<string, number>>((acc, r) => {
+    acc[r.ruta_id] = (acc[r.ruta_id] ?? 0) + 1
+    return acc
+  }, {})
+
+  const routeEstadoCpCounts = routes.reduce<Record<string, number>>((acc, r) => {
+    if (!r.estado.trim() || !r.codigo_postal.trim()) return acc
+    const key = `${normalizeEstado(r.estado)}|${r.codigo_postal.trim()}`
+    acc[key] = (acc[key] ?? 0) + 1
+    return acc
+  }, {})
+
   const filteredRoutes = routes.filter(r => {
-    if (searchCp && !r.codigo_postal.includes(searchCp) && !r.poblacion.toLowerCase().includes(searchCp.toLowerCase())) return false
-    if (filterRType === 'Local'   && r.tipo_tarifa !== 'Local')   return false
-    if (filterRType === 'Foránea' && r.tipo_tarifa !== 'Foránea') return false
-    if (filterRMode === 'auto'    && (!r.activo || !r.cotizacion_automatica || r.requiere_asesor)) return false
-    if (filterRMode === 'advisor' && !r.requiere_asesor) return false
-    if (filterRMode === 'inactive' && r.activo) return false
+    if (routeSearch) {
+      const q = routeSearch.toLowerCase()
+      const hit =
+        r.codigo_postal.includes(routeSearch) ||
+        r.poblacion.toLowerCase().includes(q) ||
+        r.estado.toLowerCase().includes(q) ||
+        r.ruta.toLowerCase().includes(q)
+      if (!hit) return false
+    }
+    if (filterRType   !== 'all' && r.tipo_tarifa     !== filterRType)   return false
+    if (filterRMode   !== 'all' && r.modo_cotizacion !== filterRMode)   return false
+    if (filterRZone   !== 'all' && r.zona            !== filterRZone)   return false
+    if (filterRActive === 'active'   && !r.activo) return false
+    if (filterRActive === 'inactive' &&  r.activo) return false
     return true
   })
 
@@ -951,51 +1103,120 @@ export default function AdminCotizadorPage() {
 
         {/* ══ TAB: RUTAS Y COBERTURA ══════════════════════════════ */}
         {activeTab === 'rutas' && (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <HandoffBanner />
 
-            {/* Filters row */}
-            <div className="bg-white border border-gray-200 rounded-xl px-5 py-4 shadow-sm flex flex-wrap gap-4 items-center">
-              <div className="relative flex-1 min-w-[180px] max-w-[260px]">
+            {/* Versión activa global de cobertura */}
+            <div className="bg-white border border-gray-200 rounded-xl px-5 py-3 shadow-sm flex flex-wrap items-center gap-x-6 gap-y-1.5 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-slate-500 uppercase tracking-wider">Versión activa de cobertura</span>
+                <Badge className="bg-slate-100 text-slate-700 border-slate-200 font-mono text-[11px]">
+                  {activeCoverageVersion}
+                </Badge>
+              </div>
+              <span className="text-slate-400">
+                Fuente: <span className="text-slate-600">Excel limpio / seed local</span>
+              </span>
+              <span className="text-slate-400">
+                Última carga: <span className="text-slate-600">pendiente backend</span>
+              </span>
+            </div>
+
+            {/* Nota: la versión se define por carga del Excel, no por fila */}
+            <div className="flex gap-2 items-start bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-xs text-slate-500">
+              <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+              <span>
+                La versión de cobertura se define por carga/importación de Excel o desde backend. No se edita por fila.
+              </span>
+            </div>
+
+            {/* Toolbar: Nueva ruta + Importar Excel + Filtros */}
+            <div className="bg-white border border-gray-200 rounded-xl px-5 py-4 shadow-sm flex flex-wrap gap-3 items-center">
+              <button
+                type="button"
+                onClick={addRoute}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-brand-orange text-white hover:opacity-90 transition-opacity"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Nueva ruta
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowImportModal(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 text-slate-700 bg-white hover:bg-gray-50 transition-colors"
+              >
+                <Upload className="w-3.5 h-3.5" />
+                Importar Excel
+              </button>
+
+              <div className="w-px h-5 bg-gray-200 hidden sm:block" />
+
+              <div className="relative min-w-[200px] max-w-[260px] flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                 <input
                   type="text"
-                  placeholder="Buscar CP o ciudad…"
-                  value={searchCp}
-                  onChange={e => setSearchCp(e.target.value)}
-                  className="w-full border border-gray-200 rounded-lg pl-9 pr-3 py-2 text-sm text-slate-700
+                  placeholder="Buscar CP, estado, ruta o población…"
+                  value={routeSearch}
+                  onChange={e => setRouteSearch(e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-700
                              focus:outline-none focus:ring-1 focus:ring-brand-orange/40 bg-white placeholder:text-slate-400"
                 />
               </div>
 
-              <div className="flex items-center gap-2">
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tipo</label>
+              <div className="flex items-center gap-1.5">
+                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Tarifa</label>
                 <select
                   value={filterRType}
                   onChange={e => setFilterRType(e.target.value as typeof filterRType)}
-                  className="border border-gray-200 rounded-md px-2.5 py-1.5 text-sm text-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-orange/40 bg-white"
+                  className="border border-gray-200 rounded-md px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-orange/40 bg-white"
                 >
-                  <option value="all">Todos</option>
+                  <option value="all">Todas</option>
                   <option value="Local">Local</option>
                   <option value="Foránea">Foránea</option>
                 </select>
               </div>
 
-              <div className="flex items-center gap-2">
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Estado</label>
+              <div className="flex items-center gap-1.5">
+                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Estado</label>
                 <select
-                  value={filterRMode}
-                  onChange={e => setFilterRMode(e.target.value as typeof filterRMode)}
-                  className="border border-gray-200 rounded-md px-2.5 py-1.5 text-sm text-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-orange/40 bg-white"
+                  value={filterRActive}
+                  onChange={e => setFilterRActive(e.target.value as typeof filterRActive)}
+                  className="border border-gray-200 rounded-md px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-orange/40 bg-white"
                 >
-                  <option value="all">Todos</option>
-                  <option value="auto">Cotización automática</option>
-                  <option value="advisor">Requiere asesor</option>
+                  <option value="all">Todas</option>
+                  <option value="active">Activas</option>
                   <option value="inactive">Inactivas</option>
                 </select>
               </div>
 
-              <p className="ml-auto text-xs text-slate-400">
+              <div className="flex items-center gap-1.5">
+                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Modo</label>
+                <select
+                  value={filterRMode}
+                  onChange={e => setFilterRMode(e.target.value as typeof filterRMode)}
+                  className="border border-gray-200 rounded-md px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-orange/40 bg-white"
+                >
+                  <option value="all">Todos</option>
+                  <option value="Automática">Automática</option>
+                  <option value="Asesor">Asesor</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Zona</label>
+                <select
+                  value={filterRZone}
+                  onChange={e => setFilterRZone(e.target.value as typeof filterRZone)}
+                  className="border border-gray-200 rounded-md px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-orange/40 bg-white"
+                >
+                  <option value="all">Todas</option>
+                  <option value="Metro">Metro</option>
+                  <option value="Foráneo">Foráneo</option>
+                  <option value="Especial">Especial</option>
+                </select>
+              </div>
+
+              <p className="ml-auto text-xs text-slate-400 whitespace-nowrap">
                 {filteredRoutes.length} / {routes.length} rutas
               </p>
             </div>
@@ -1003,10 +1224,14 @@ export default function AdminCotizadorPage() {
             {/* Table */}
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="text-sm" style={{ minWidth: '1500px', width: '100%' }}>
                   <thead>
                     <tr className="bg-slate-50 border-b border-gray-200">
-                      {['ID','Estado','Ruta','Población','CP','Zona','Tarifa','Activa','Auto','Asesor','Días','Versión'].map(h => (
+                      {[
+                        'ID cobertura', 'Estado', 'Ruta', 'Población', 'C.P.',
+                        'L', 'M', 'X', 'J', 'V', 'S',
+                        'Zona', 'Tarifa', 'Activa', 'Modo cotización', 'Acciones',
+                      ].map(h => (
                         <th key={h} className="px-3 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">
                           {h}
                         </th>
@@ -1014,81 +1239,382 @@ export default function AdminCotizadorPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {filteredRoutes.map(r => (
-                      <tr key={r.ruta_id} className="hover:bg-slate-50 transition-colors">
-                        <td className="px-3 py-3 font-mono text-[11px] text-slate-400">{r.ruta_id}</td>
-                        <td className="px-3 py-3 text-xs font-medium text-slate-700 whitespace-nowrap">{r.estado}</td>
-                        <td className="px-3 py-3 text-xs text-slate-600 whitespace-nowrap max-w-[140px] truncate" title={r.ruta}>{r.ruta}</td>
-                        <td className="px-3 py-3 text-xs text-slate-500 whitespace-nowrap max-w-[120px] truncate" title={r.poblacion}>{r.poblacion}</td>
-                        <td className="px-3 py-3 font-mono text-xs text-slate-600">{r.codigo_postal}</td>
-                        <td className="px-3 py-3 whitespace-nowrap">
-                          <Badge className={r.zona_operativa === 'Área Metropolitana'
-                            ? 'bg-sky-50 text-sky-700 border-sky-200'
-                            : 'bg-purple-50 text-purple-700 border-purple-200'
-                          }>
-                            {r.zona_operativa === 'Área Metropolitana' ? 'Metro' : 'Foráneo'}
-                          </Badge>
-                        </td>
-                        <td className="px-3 py-3">
-                          <Badge className={r.tipo_tarifa === 'Local'
-                            ? 'bg-sky-50 text-sky-700 border-sky-200'
-                            : 'bg-purple-50 text-purple-700 border-purple-200'
-                          }>
-                            {r.tipo_tarifa}
-                          </Badge>
-                        </td>
-                        <td className="px-3 py-3 text-center">
-                          <Toggle checked={r.activo} onChange={() => updateRoute(r.ruta_id, { activo: !r.activo })} />
-                        </td>
-                        <td className="px-3 py-3 text-center">
-                          <Toggle checked={r.cotizacion_automatica} onChange={() => updateRoute(r.ruta_id, { cotizacion_automatica: !r.cotizacion_automatica })} />
-                        </td>
-                        <td className="px-3 py-3 text-center">
-                          <Toggle checked={r.requiere_asesor} onChange={() => updateRoute(r.ruta_id, { requiere_asesor: !r.requiere_asesor })} />
-                        </td>
-                        <td className="px-3 py-3 font-mono text-[11px] text-slate-500">{daysLabel(r)}</td>
-                        <td className="px-3 py-3 font-mono text-[11px] text-slate-400">{r.version_cobertura}</td>
-                      </tr>
-                    ))}
+                    {filteredRoutes.map(r => {
+                      const isRouteDuplicate = (routeIdCounts[r.ruta_id] ?? 0) > 1
+                      const cpKey = r.estado.trim() && r.codigo_postal.trim()
+                        ? `${normalizeEstado(r.estado)}|${r.codigo_postal.trim()}`
+                        : ''
+                      const isEstadoCpDuplicate = cpKey ? (routeEstadoCpCounts[cpKey] ?? 0) > 1 : false
+                      const cpInvalid = r.codigo_postal !== '' && !/^\d{5}$/.test(r.codigo_postal)
+                      const isDropdownOpen = openRouteDropdownId === r._rowKey
+                      const incomplete = !isRouteRowComplete(r)
+                      const dayKeys = [
+                        ['lunes',     'lunes'],
+                        ['martes',    'martes'],
+                        ['miercoles', 'miércoles'],
+                        ['jueves',    'jueves'],
+                        ['viernes',   'viernes'],
+                        ['sabado',    'sábado'],
+                      ] as const
+                      return (
+                        <tr
+                          key={r._rowKey}
+                          className={[
+                            'transition-colors hover:bg-slate-50',
+                            !r.activo ? 'opacity-50' : '',
+                          ].filter(Boolean).join(' ')}
+                        >
+                          {/* ID cobertura — readonly */}
+                          <td className="px-3 py-2.5 whitespace-nowrap">
+                            <div className="flex flex-col gap-0.5">
+                              <span className={`font-mono text-[11px] ${isRouteDuplicate || r.ruta_id === 'COV_PENDIENTE' ? 'text-red-600' : 'text-slate-500'}`}>
+                                {r.ruta_id}
+                              </span>
+                              {r.isNew && (
+                                <Badge className="bg-sky-50 text-sky-700 border-sky-200 text-[10px] self-start">Nueva</Badge>
+                              )}
+                              {isRouteDuplicate && (
+                                <Badge className="bg-red-50 text-red-600 border-red-200 text-[10px] self-start">ID duplicado</Badge>
+                              )}
+                              {isEstadoCpDuplicate && !isRouteDuplicate && (
+                                <Badge className="bg-red-50 text-red-600 border-red-200 text-[10px] self-start">Estado+CP duplicado</Badge>
+                              )}
+                              {incomplete && r.isNew && (
+                                <Badge className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] self-start">Incompleta</Badge>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Estado */}
+                          <td className="px-3 py-2.5">
+                            <input
+                              type="text"
+                              value={r.estado}
+                              onChange={e => updateRoute(r._rowKey, { estado: e.target.value })}
+                              className={`w-[110px] border rounded px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-orange/40 bg-white ${!r.estado.trim() ? 'border-red-300' : 'border-gray-200'}`}
+                            />
+                          </td>
+
+                          {/* Ruta */}
+                          <td className="px-3 py-2.5">
+                            <input
+                              type="text"
+                              value={r.ruta}
+                              onChange={e => updateRoute(r._rowKey, { ruta: e.target.value })}
+                              className={`w-[140px] border rounded px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-orange/40 bg-white ${!r.ruta.trim() ? 'border-red-300' : 'border-gray-200'}`}
+                            />
+                          </td>
+
+                          {/* Población */}
+                          <td className="px-3 py-2.5">
+                            <input
+                              type="text"
+                              value={r.poblacion}
+                              onChange={e => updateRoute(r._rowKey, { poblacion: e.target.value })}
+                              className={`w-[120px] border rounded px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-orange/40 bg-white ${!r.poblacion.trim() ? 'border-red-300' : 'border-gray-200'}`}
+                            />
+                          </td>
+
+                          {/* C.P. */}
+                          <td className="px-3 py-2.5">
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              maxLength={5}
+                              value={r.codigo_postal}
+                              onChange={e => updateRoute(r._rowKey, { codigo_postal: e.target.value.replace(/\D/g, '').slice(0, 5) })}
+                              className={`w-[68px] font-mono border rounded px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-orange/40 bg-white ${cpInvalid || !r.codigo_postal ? 'border-red-300' : 'border-gray-200'}`}
+                            />
+                          </td>
+
+                          {/* Días — 6 checkboxes */}
+                          {dayKeys.map(([key, label]) => (
+                            <td key={key} className="px-2 py-2.5 text-center">
+                              <input
+                                type="checkbox"
+                                aria-label={label}
+                                checked={r[key]}
+                                onChange={() => updateRoute(r._rowKey, { [key]: !r[key] } as Partial<AdminRouteRow>)}
+                                className="w-4 h-4 accent-brand-orange cursor-pointer"
+                              />
+                            </td>
+                          ))}
+
+                          {/* Zona */}
+                          <td className="px-3 py-2.5">
+                            <select
+                              value={r.zona}
+                              onChange={e => updateRoute(r._rowKey, { zona: e.target.value as AdminRouteZone })}
+                              className="border border-gray-200 rounded px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-orange/40 bg-white"
+                            >
+                              <option value="Metro">Metro</option>
+                              <option value="Foráneo">Foráneo</option>
+                              <option value="Especial">Especial</option>
+                            </select>
+                          </td>
+
+                          {/* Tarifa */}
+                          <td className="px-3 py-2.5">
+                            <select
+                              value={r.tipo_tarifa}
+                              onChange={e => updateRoute(r._rowKey, { tipo_tarifa: e.target.value as AdminRouteTarifa })}
+                              className="border border-gray-200 rounded px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-orange/40 bg-white"
+                            >
+                              <option value="Local">Local</option>
+                              <option value="Foránea">Foránea</option>
+                            </select>
+                          </td>
+
+                          {/* Activa */}
+                          <td className="px-3 py-2.5 text-center">
+                            <div className="flex flex-col items-center gap-1">
+                              <Toggle
+                                checked={r.activo}
+                                onChange={() => updateRoute(r._rowKey, { activo: !r.activo })}
+                              />
+                              {!r.activo && (
+                                <Badge className="bg-gray-100 text-gray-500 border-gray-200 text-[10px]">Inactiva</Badge>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Modo cotización */}
+                          <td className="px-3 py-2.5">
+                            <select
+                              value={r.modo_cotizacion}
+                              onChange={e => updateRoute(r._rowKey, { modo_cotizacion: e.target.value as AdminRouteMode })}
+                              className={`border rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-brand-orange/40 bg-white ${
+                                r.modo_cotizacion === 'Automática'
+                                  ? 'border-green-200 text-green-700'
+                                  : 'border-yellow-200 text-yellow-700'
+                              }`}
+                            >
+                              <option value="Automática">Automática</option>
+                              <option value="Asesor">Asesor</option>
+                            </select>
+                          </td>
+
+                          {/* Acciones — dropdown compacto */}
+                          <td className="px-3 py-2.5 whitespace-nowrap text-right">
+                            <div className="relative inline-block" data-route-actions>
+                              <button
+                                type="button"
+                                onClick={() => setOpenRouteDropdownId(prev => prev === r._rowKey ? null : r._rowKey)}
+                                aria-haspopup="menu"
+                                aria-expanded={isDropdownOpen}
+                                aria-label="Acciones de la ruta"
+                                className="inline-flex items-center justify-center w-8 h-7 rounded border border-gray-200 text-slate-500 hover:bg-gray-50 hover:text-slate-700 transition-colors"
+                              >
+                                <MoreHorizontal className="w-4 h-4" />
+                              </button>
+                              {isDropdownOpen && (
+                                <div
+                                  role="menu"
+                                  className="absolute right-0 z-20 mt-1 w-40 bg-white border border-gray-200 rounded-lg shadow-lg py-1"
+                                >
+                                  <button
+                                    type="button"
+                                    role="menuitem"
+                                    onClick={() => {
+                                      duplicateRoute(r._rowKey)
+                                      setOpenRouteDropdownId(null)
+                                    }}
+                                    className="block w-full text-left px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 transition-colors"
+                                  >
+                                    Duplicar
+                                  </button>
+                                  <button
+                                    type="button"
+                                    role="menuitem"
+                                    onClick={() => {
+                                      setDeleteRouteConfirmId(r._rowKey)
+                                      setOpenRouteDropdownId(null)
+                                    }}
+                                    className="block w-full text-left px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors"
+                                  >
+                                    Eliminar
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
 
               <div className="px-6 py-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 text-slate-600 bg-white hover:bg-gray-50 transition-colors"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    Agregar ruta
-                  </button>
-                  <button
-                    type="button"
-                    disabled
-                    title="Disponible en fase 2 — requiere backend AWS"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 text-slate-400 bg-slate-50 cursor-not-allowed"
-                  >
-                    <Upload className="w-3.5 h-3.5" />
-                    Importar Excel (fase 2)
-                  </button>
-                </div>
+                <p className="text-xs text-slate-400">
+                  Fuente: seedRoutes.ts &nbsp;·&nbsp;
+                  {routes.filter(r => r.isNew).length > 0
+                    ? `${routes.filter(r => r.isNew).length} fila(s) nueva(s) sin persistir`
+                    : 'Sin cambios pendientes'
+                  }
+                  &nbsp;·&nbsp; Cambios guardados en modo demo / pendiente backend.
+                </p>
                 <SaveBtn state={saveState.rutas} onClick={() => triggerSave('rutas')} />
-              </div>
-
-              {/* Import Excel note */}
-              <div className="px-6 pb-4">
-                <div className="flex gap-2 items-start bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs text-slate-500">
-                  <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
-                  <span>
-                    La importación de Excel deberá conectarse al backend de BADA en una fase posterior.
-                    TODO: validar columnas, CPs, duplicados y conflictos antes de guardar.
-                  </span>
-                </div>
               </div>
             </div>
 
             <TodoNote endpoint="GET/PATCH /api/admin/calculator/routes — POST /api/admin/calculator/routes/import" />
+
+            {/* Modal: Importar cobertura desde Excel (visual / handoff) */}
+            {showImportModal && (
+              <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="import-routes-title"
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+                onClick={() => setShowImportModal(false)}
+              >
+                <div
+                  className="bg-white rounded-xl shadow-2xl max-w-xl w-full p-6"
+                  onClick={e => e.stopPropagation()}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0">
+                      <Upload className="w-5 h-5 text-sky-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 id="import-routes-title" className="text-base font-bold text-slate-900">
+                        Importar cobertura desde Excel
+                      </h3>
+                      <p className="text-sm text-slate-600 mt-2 leading-relaxed">
+                        El archivo debe ser un Excel limpio, sin logos ni títulos, con pestañas por
+                        estado/zona y la misma estructura en todas las hojas. La importación final
+                        deberá conectarse al backend/AWS de BADA.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-5">
+                    <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                      Columnas esperadas en cada hoja
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {[
+                        'ESTADO', 'RUTA', 'POBLACIÓN', 'C.P.',
+                        'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO',
+                        'ZONA', 'TARIFA', 'ACTIVA', 'MODO_COTIZACIÓN',
+                      ].map(col => (
+                        <Badge key={col} className="bg-slate-100 text-slate-700 border-slate-200 font-mono text-[10px]">
+                          {col}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                        Versión de cobertura
+                      </label>
+                      <input
+                        type="text"
+                        value={importVersion}
+                        onChange={e => setImportVersion(e.target.value)}
+                        placeholder="cobertura-2025"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono
+                                   focus:outline-none focus:ring-2 focus:ring-orange-400/30 focus:border-brand-orange
+                                   transition-colors bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                        Estado
+                      </label>
+                      <div className="border border-gray-200 bg-slate-50 rounded-lg px-3 py-2 text-sm text-slate-500">
+                        Pendiente backend
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 items-start bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-700 mt-4">
+                    <AlertTriangle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                    <span>
+                      Flujo visual / handoff. La lectura real del Excel y la persistencia se conectarán
+                      con el backend/AWS de BADA en una fase posterior.
+                    </span>
+                  </div>
+
+                  <div className="flex justify-end gap-2 mt-6">
+                    <button
+                      type="button"
+                      onClick={() => setShowImportModal(false)}
+                      className="px-4 py-2 text-sm font-semibold rounded-lg border border-gray-200 text-slate-700 hover:bg-gray-50 transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowImportModal(false)}
+                      className="px-4 py-2 text-sm font-semibold rounded-lg bg-brand-orange text-white hover:opacity-90 transition-opacity"
+                    >
+                      Validar archivo
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Modal: confirmación estricta para eliminar cobertura */}
+            {deleteRouteConfirmId && (() => {
+              const target = routes.find(r => r._rowKey === deleteRouteConfirmId)
+              return (
+                <div
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="delete-route-title"
+                  className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+                  onClick={() => setDeleteRouteConfirmId(null)}
+                >
+                  <div
+                    className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                        <AlertTriangle className="w-5 h-5 text-red-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 id="delete-route-title" className="text-base font-bold text-slate-900">
+                          ¿Eliminar esta cobertura?
+                        </h3>
+                        <p className="text-sm text-slate-600 mt-2 leading-relaxed">
+                          Esta acción eliminará la cobertura{' '}
+                          {target && (
+                            <span className="font-mono text-[11px] text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded">
+                              {target.ruta_id}
+                            </span>
+                          )}{' '}
+                          de la tabla del admin/demo. Si esta cobertura se usa en producción, podría
+                          afectar la configuración del cotizador cuando se conecte al backend. Esta
+                          acción no se puede deshacer en esta interfaz.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-2 mt-6">
+                      <button
+                        type="button"
+                        onClick={() => setDeleteRouteConfirmId(null)}
+                        className="px-4 py-2 text-sm font-semibold rounded-lg border border-gray-200 text-slate-700 hover:bg-gray-50 transition-colors"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteRoute(deleteRouteConfirmId)}
+                        className="px-4 py-2 text-sm font-semibold rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
+                      >
+                        Sí, eliminar cobertura
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })()}
           </div>
         )}
 
