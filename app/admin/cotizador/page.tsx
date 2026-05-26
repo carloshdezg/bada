@@ -58,6 +58,50 @@ interface MessagesState {
 }
 
 // ─────────────────────────────────────────────────────────────────────
+// Tarifario admin helpers
+// ─────────────────────────────────────────────────────────────────────
+
+interface AdminTariffRow extends TariffRow {
+  moneda: string
+  isNew: boolean
+  rango_desde: number | ''
+  rango_hasta: number | '' | 'plus'
+}
+
+function parseTariffRango(rango: string): Pick<AdminTariffRow, 'rango_desde' | 'rango_hasta'> {
+  if (rango.endsWith('+')) {
+    const n = parseInt(rango)
+    return { rango_desde: isNaN(n) ? '' : n, rango_hasta: 'plus' }
+  }
+  const [a, b] = rango.split('-')
+  const d = parseInt(a); const h = parseInt(b)
+  return { rango_desde: isNaN(d) ? '' : d, rango_hasta: isNaN(h) ? '' : h }
+}
+
+function buildTariffId(
+  tipo: TariffRow['tipo_tarifa'],
+  desde: number | '',
+  hasta: number | '' | 'plus',
+): string {
+  const t = tipo === 'Local' ? 'LOCAL' : 'FORANEA'
+  if (desde === '') return `T_${t}_?`
+  if (hasta === 'plus') return `T_${t}_${desde}PLUS`
+  if (hasta === '') return `T_${t}_${desde}_?`
+  return `T_${t}_${desde}_${hasta}`
+}
+
+function buildRangoGuias(desde: number | '', hasta: number | '' | 'plus'): string {
+  if (desde === '') return ''
+  if (hasta === 'plus') return `${desde}+`
+  if (hasta === '') return `${desde}-?`
+  return `${desde}-${hasta}`
+}
+
+function seedToAdmin(t: TariffRow): AdminTariffRow {
+  return { ...t, moneda: 'MXN', isNew: false, ...parseTariffRango(t.rango_guias) }
+}
+
+// ─────────────────────────────────────────────────────────────────────
 // Seed data copies (local state — not connected to any backend yet)
 // TODO: reemplazar datos seed/locales por endpoints reales.
 // ─────────────────────────────────────────────────────────────────────
@@ -266,13 +310,75 @@ export default function AdminCotizadorPage() {
   }
 
   // ── Tariffs state ─────────────────────────────────────────────────
-  const [tariffs, setTariffs] = useState<TariffRow[]>(seedTariffs)
+  const [tariffs, setTariffs] = useState<AdminTariffRow[]>(() => seedTariffs.map(seedToAdmin))
   const [filterTipo, setFilterTipo] = useState<'all' | 'Local' | 'Foránea'>('all')
   const [filterUso,  setFilterUso]  = useState<'all' | 'Público' | 'Asesor'>('all')
+  const [selectedTariffId, setSelectedTariffId] = useState<string | null>(null)
+  const [deleteConfirmId,  setDeleteConfirmId]   = useState<string | null>(null)
 
-  function updateTariff(id: string, patch: Partial<TariffRow>) {
-    setTariffs(prev => prev.map(t => t.tarifa_id === id ? { ...t, ...patch } : t))
+  function updateTariff(oldId: string, patch: Partial<AdminTariffRow>) {
+    let nextId = oldId
+    setTariffs(prev => prev.map(t => {
+      if (t.tarifa_id !== oldId) return t
+      const updated = { ...t, ...patch }
+      if ('tipo_tarifa' in patch || 'rango_desde' in patch || 'rango_hasta' in patch) {
+        updated.tarifa_id   = buildTariffId(updated.tipo_tarifa, updated.rango_desde, updated.rango_hasta)
+        updated.rango_guias = buildRangoGuias(updated.rango_desde, updated.rango_hasta)
+        nextId = updated.tarifa_id
+      }
+      return updated
+    }))
+    if (nextId !== oldId) setSelectedTariffId(prev => prev === oldId ? nextId : prev)
   }
+
+  function addTariff() {
+    const tempId = `T_LOCAL_NUEVA_${Date.now()}`
+    const newRow: AdminTariffRow = {
+      tarifa_id: tempId, tipo_tarifa: 'Local', rango_guias: '',
+      rango_desde: '', rango_hasta: '',
+      tarifa_5kg: 0, tarifa_10kg: 0, tarifa_15kg: 0,
+      tarifa_20kg: 0, tarifa_30kg: 0, precio_kg_adicional: 0,
+      precio_base_incluye_iva: false, activo: true,
+      version_tarifario: 'v2026',
+      vigencia_desde: new Date().toISOString().split('T')[0],
+      vigencia_hasta: null, uso: 'Asesor',
+      notas: 'Nueva tarifa.', moneda: 'MXN', isNew: true,
+    }
+    setTariffs(prev => [newRow, ...prev])
+    setSelectedTariffId(tempId)
+  }
+
+  function duplicateTariff(id: string) {
+    const src = tariffs.find(t => t.tarifa_id === id)
+    if (!src) return
+    const tempId = `${src.tipo_tarifa === 'Local' ? 'T_LOCAL' : 'T_FORANEA'}_COPIA_${Date.now()}`
+    const newRow: AdminTariffRow = {
+      ...src, tarifa_id: tempId,
+      rango_desde: '', rango_hasta: '', rango_guias: '', isNew: true,
+    }
+    setTariffs(prev => {
+      const idx = prev.findIndex(t => t.tarifa_id === id)
+      const next = [...prev]
+      next.splice(idx + 1, 0, newRow)
+      return next
+    })
+    setSelectedTariffId(tempId)
+  }
+
+  function deactivateTariff(id: string) {
+    setTariffs(prev => prev.map(t => t.tarifa_id === id ? { ...t, activo: false } : t))
+  }
+
+  function deleteTariff(id: string) {
+    setTariffs(prev => prev.filter(t => t.tarifa_id !== id))
+    if (selectedTariffId === id) setSelectedTariffId(null)
+    setDeleteConfirmId(null)
+  }
+
+  const tariffIdCounts = tariffs.reduce<Record<string, number>>((acc, t) => {
+    acc[t.tarifa_id] = (acc[t.tarifa_id] ?? 0) + 1
+    return acc
+  }, {})
 
   const filteredTariffs = tariffs.filter(t => {
     if (filterTipo !== 'all' && t.tipo_tarifa !== filterTipo) return false
@@ -479,11 +585,47 @@ export default function AdminCotizadorPage() {
 
         {/* ══ TAB: TARIFARIO ══════════════════════════════════════ */}
         {activeTab === 'tarifario' && (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <HandoffBanner />
 
-            {/* Filters */}
-            <div className="bg-white border border-gray-200 rounded-xl px-5 py-4 shadow-sm flex flex-wrap gap-4 items-center">
+            {/* Handoff note */}
+            <div className="flex gap-2.5 items-start bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+              <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0 text-amber-600" />
+              <span>
+                Los cambios de esta interfaz son parte del handoff administrativo.
+                La persistencia real deberá conectarse al backend/AWS de BADA.
+              </span>
+            </div>
+
+            {/* Toolbar + Filters */}
+            <div className="bg-white border border-gray-200 rounded-xl px-5 py-4 shadow-sm flex flex-wrap gap-3 items-center">
+              <button
+                type="button"
+                onClick={addTariff}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-brand-orange text-white hover:opacity-90 transition-opacity"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Agregar tarifa
+              </button>
+              <button
+                type="button"
+                disabled={!selectedTariffId}
+                onClick={() => { if (selectedTariffId) duplicateTariff(selectedTariffId) }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 text-slate-600 bg-white hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Duplicar seleccionada
+              </button>
+              <button
+                type="button"
+                disabled={!selectedTariffId || !(tariffs.find(t => t.tarifa_id === selectedTariffId)?.activo)}
+                onClick={() => { if (selectedTariffId) deactivateTariff(selectedTariffId) }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 text-slate-600 bg-white hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Desactivar seleccionada
+              </button>
+
+              <div className="w-px h-5 bg-gray-200 hidden sm:block" />
+
               <div className="flex items-center gap-2">
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tipo</label>
                 <select
@@ -508,19 +650,29 @@ export default function AdminCotizadorPage() {
                   <option value="Asesor">Asesor</option>
                 </select>
               </div>
-              <p className="ml-auto text-xs text-slate-400">
+              <p className="ml-auto text-xs text-slate-400 whitespace-nowrap">
                 {filteredTariffs.length} / {tariffs.length} filas &nbsp;·&nbsp;
-                El cotizador público usa el rango 1–15 guías.
+                El cotizador público usa rango 1–15.
               </p>
+            </div>
+
+            {/* Weight-bracket note */}
+            <div className="flex gap-2 items-start bg-sky-50 border border-sky-200 rounded-lg px-4 py-3 text-xs text-sky-700">
+              <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+              <span>Estos valores son costos por escalón de peso cobrable, no kilogramos capturados.</span>
             </div>
 
             {/* Table */}
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="text-sm" style={{ minWidth: '1480px', width: '100%' }}>
                   <thead>
                     <tr className="bg-slate-50 border-b border-gray-200">
-                      {['ID', 'Tipo', 'Rango guías', 'Audiencia', '5 kg', '10 kg', '15 kg', '20 kg', '30 kg', 'Kg adic.', 'Moneda', 'Inc. IVA', 'Activo', 'Versión'].map(h => (
+                      {[
+                        'ID técnico', 'Tipo', 'Desde', 'Hasta', 'Audiencia',
+                        'Hasta 5 kg', 'Hasta 10 kg', 'Hasta 15 kg', 'Hasta 20 kg', 'Hasta 30 kg', 'Kg adicional',
+                        'Moneda', 'Inc. IVA', 'Activo', 'Versión', 'Acciones',
+                      ].map(h => (
                         <th key={h} className="px-3 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">
                           {h}
                         </th>
@@ -528,56 +680,220 @@ export default function AdminCotizadorPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {filteredTariffs.map(t => (
-                      <tr key={t.tarifa_id} className="hover:bg-slate-50 transition-colors">
-                        <td className="px-3 py-3 font-mono text-[11px] text-slate-500 whitespace-nowrap">{t.tarifa_id}</td>
-                        <td className="px-3 py-3 whitespace-nowrap">
-                          <Badge className={t.tipo_tarifa === 'Local'
-                            ? 'bg-sky-50 text-sky-700 border-sky-200'
-                            : 'bg-purple-50 text-purple-700 border-purple-200'
-                          }>
-                            {t.tipo_tarifa}
-                          </Badge>
-                        </td>
-                        <td className="px-3 py-3 font-mono text-xs text-slate-600">{t.rango_guias}</td>
-                        <td className="px-3 py-3">
-                          <Badge className={t.uso === 'Público'
-                            ? 'bg-green-50 text-green-700 border-green-200'
-                            : 'bg-yellow-50 text-yellow-700 border-yellow-200'
-                          }>
-                            {t.uso}
-                          </Badge>
-                        </td>
-                        {(['tarifa_5kg','tarifa_10kg','tarifa_15kg','tarifa_20kg','tarifa_30kg','precio_kg_adicional'] as const).map(field => (
-                          <td key={field} className="px-3 py-3">
+                    {filteredTariffs.map(t => {
+                      const isSelected    = selectedTariffId === t.tarifa_id
+                      const isDuplicate   = (tariffIdCounts[t.tarifa_id] ?? 0) > 1
+                      const hasInvalidRange = typeof t.rango_desde === 'number' && typeof t.rango_hasta === 'number' && t.rango_desde > t.rango_hasta
+                      return (
+                        <tr
+                          key={t.tarifa_id}
+                          onClick={() => setSelectedTariffId(isSelected ? null : t.tarifa_id)}
+                          className={[
+                            'cursor-pointer transition-colors',
+                            isSelected ? 'bg-orange-50 ring-1 ring-inset ring-brand-orange/20' : 'hover:bg-slate-50',
+                            !t.activo ? 'opacity-50' : '',
+                          ].filter(Boolean).join(' ')}
+                        >
+                          {/* ID técnico — readonly */}
+                          <td className="px-3 py-2.5 whitespace-nowrap">
+                            <div className="flex flex-col gap-0.5">
+                              <span className={`font-mono text-[11px] ${isDuplicate ? 'text-red-600' : 'text-slate-500'}`}>
+                                {t.tarifa_id}
+                              </span>
+                              {t.isNew && (
+                                <Badge className="bg-sky-50 text-sky-700 border-sky-200 text-[10px] self-start">Nueva</Badge>
+                              )}
+                              {isDuplicate && (
+                                <Badge className="bg-red-50 text-red-600 border-red-200 text-[10px] self-start">ID duplicado</Badge>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Tipo */}
+                          <td className="px-3 py-2.5" onClick={e => e.stopPropagation()}>
+                            <select
+                              value={t.tipo_tarifa}
+                              onChange={e => updateTariff(t.tarifa_id, { tipo_tarifa: e.target.value as TariffRow['tipo_tarifa'] })}
+                              className="border border-gray-200 rounded px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-orange/40 bg-white"
+                            >
+                              <option value="Local">Local</option>
+                              <option value="Foránea">Foránea</option>
+                            </select>
+                          </td>
+
+                          {/* Rango desde */}
+                          <td className="px-3 py-2.5" onClick={e => e.stopPropagation()}>
                             <input
                               type="number"
-                              value={t[field]}
-                              step="0.01"
-                              onChange={e => updateTariff(t.tarifa_id, { [field]: parseFloat(e.target.value) || 0 })}
-                              className="w-[72px] border border-gray-200 rounded px-2 py-1 text-xs text-slate-700
-                                         focus:outline-none focus:ring-1 focus:ring-brand-orange/40 bg-white"
+                              value={t.rango_desde}
+                              min={1}
+                              onChange={e => {
+                                const v = parseInt(e.target.value)
+                                updateTariff(t.tarifa_id, { rango_desde: isNaN(v) ? '' : v })
+                              }}
+                              className={`w-[58px] border rounded px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-orange/40 bg-white ${hasInvalidRange ? 'border-red-300' : 'border-gray-200'}`}
                             />
                           </td>
-                        ))}
-                        <td className="px-3 py-3 text-xs text-slate-500">MXN</td>
-                        <td className="px-3 py-3 text-center">
-                          <Badge className={t.precio_base_incluye_iva ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-500 border-gray-200'}>
-                            {t.precio_base_incluye_iva ? 'Sí' : 'No'}
-                          </Badge>
-                        </td>
-                        <td className="px-3 py-3 text-center">
-                          <Toggle checked={t.activo} onChange={() => updateTariff(t.tarifa_id, { activo: !t.activo })} />
-                        </td>
-                        <td className="px-3 py-3 font-mono text-[11px] text-slate-400 whitespace-nowrap">{t.version_tarifario}</td>
-                      </tr>
-                    ))}
+
+                          {/* Rango hasta — number or "+" for open-ended */}
+                          <td className="px-3 py-2.5" onClick={e => e.stopPropagation()}>
+                            <input
+                              type="text"
+                              value={t.rango_hasta === 'plus' ? '+' : t.rango_hasta}
+                              placeholder="num / +"
+                              onChange={e => {
+                                const raw = e.target.value.trim()
+                                if (raw === '+') {
+                                  updateTariff(t.tarifa_id, { rango_hasta: 'plus' })
+                                } else {
+                                  const v = parseInt(raw)
+                                  updateTariff(t.tarifa_id, { rango_hasta: isNaN(v) ? '' : v })
+                                }
+                              }}
+                              className={`w-[58px] border rounded px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-orange/40 bg-white ${hasInvalidRange ? 'border-red-300' : 'border-gray-200'}`}
+                            />
+                          </td>
+
+                          {/* Audiencia */}
+                          <td className="px-3 py-2.5" onClick={e => e.stopPropagation()}>
+                            <select
+                              value={t.uso}
+                              onChange={e => updateTariff(t.tarifa_id, { uso: e.target.value as TariffRow['uso'] })}
+                              className="border border-gray-200 rounded px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-orange/40 bg-white"
+                            >
+                              <option value="Público">Público</option>
+                              <option value="Asesor">Asesor</option>
+                            </select>
+                          </td>
+
+                          {/* Cost fields */}
+                          {(['tarifa_5kg', 'tarifa_10kg', 'tarifa_15kg', 'tarifa_20kg', 'tarifa_30kg', 'precio_kg_adicional'] as const).map(field => (
+                            <td key={field} className="px-3 py-2.5" onClick={e => e.stopPropagation()}>
+                              <input
+                                type="number"
+                                value={t[field]}
+                                step="0.01"
+                                min={0}
+                                onChange={e => updateTariff(t.tarifa_id, { [field]: parseFloat(e.target.value) || 0 } as Partial<AdminTariffRow>)}
+                                className="w-[70px] border border-gray-200 rounded px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-orange/40 bg-white"
+                              />
+                            </td>
+                          ))}
+
+                          {/* Moneda */}
+                          <td className="px-3 py-2.5" onClick={e => e.stopPropagation()}>
+                            <input
+                              type="text"
+                              value={t.moneda}
+                              onChange={e => updateTariff(t.tarifa_id, { moneda: e.target.value })}
+                              className="w-[50px] border border-gray-200 rounded px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-orange/40 bg-white"
+                            />
+                          </td>
+
+                          {/* Inc. IVA */}
+                          <td className="px-3 py-2.5 text-center" onClick={e => e.stopPropagation()}>
+                            <Toggle
+                              checked={t.precio_base_incluye_iva}
+                              onChange={() => updateTariff(t.tarifa_id, { precio_base_incluye_iva: !t.precio_base_incluye_iva })}
+                            />
+                          </td>
+
+                          {/* Activo */}
+                          <td className="px-3 py-2.5 text-center" onClick={e => e.stopPropagation()}>
+                            <div className="flex flex-col items-center gap-1">
+                              <Toggle
+                                checked={t.activo}
+                                onChange={() => updateTariff(t.tarifa_id, { activo: !t.activo })}
+                              />
+                              {!t.activo && (
+                                <Badge className="bg-gray-100 text-gray-500 border-gray-200 text-[10px]">Inactiva</Badge>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Versión */}
+                          <td className="px-3 py-2.5" onClick={e => e.stopPropagation()}>
+                            <input
+                              type="text"
+                              value={t.version_tarifario}
+                              onChange={e => updateTariff(t.tarifa_id, { version_tarifario: e.target.value })}
+                              className="w-[68px] border border-gray-200 rounded px-2 py-1 text-[11px] font-mono text-slate-600 focus:outline-none focus:ring-1 focus:ring-brand-orange/40 bg-white"
+                            />
+                          </td>
+
+                          {/* Acciones */}
+                          <td className="px-3 py-2.5 whitespace-nowrap" onClick={e => e.stopPropagation()}>
+                            <div className="flex items-center gap-1 flex-wrap">
+                              <button
+                                type="button"
+                                onClick={() => duplicateTariff(t.tarifa_id)}
+                                className="px-2 py-1 text-[10px] font-semibold rounded border border-gray-200 text-slate-600 hover:bg-gray-50 transition-colors"
+                              >
+                                Duplicar
+                              </button>
+                              {t.activo ? (
+                                <button
+                                  type="button"
+                                  onClick={() => deactivateTariff(t.tarifa_id)}
+                                  className="px-2 py-1 text-[10px] font-semibold rounded border border-gray-200 text-slate-600 hover:bg-gray-50 transition-colors"
+                                >
+                                  Desactivar
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => updateTariff(t.tarifa_id, { activo: true })}
+                                  className="px-2 py-1 text-[10px] font-semibold rounded border border-green-200 text-green-700 hover:bg-green-50 transition-colors"
+                                >
+                                  Activar
+                                </button>
+                              )}
+                              {t.isNew && (
+                                deleteConfirmId === t.tarifa_id ? (
+                                  <div className="flex items-center gap-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => deleteTariff(t.tarifa_id)}
+                                      className="px-2 py-1 text-[10px] font-semibold rounded bg-red-500 text-white hover:bg-red-600 transition-colors"
+                                    >
+                                      Confirmar
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setDeleteConfirmId(null)}
+                                      className="px-2 py-1 text-[10px] font-semibold rounded border border-gray-200 text-slate-500 hover:bg-gray-50 transition-colors"
+                                    >
+                                      Cancelar
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => setDeleteConfirmId(t.tarifa_id)}
+                                    className="px-2 py-1 text-[10px] font-semibold rounded border border-red-200 text-red-500 hover:bg-red-50 transition-colors"
+                                  >
+                                    Eliminar
+                                  </button>
+                                )
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
 
-              <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
-                <p className="text-xs text-slate-400">Fuente: seedTariffs.ts</p>
+              <div className="px-6 py-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3">
+                <p className="text-xs text-slate-400">
+                  Fuente: seedTariffs.ts &nbsp;·&nbsp;
+                  {tariffs.filter(t => t.isNew).length > 0
+                    ? `${tariffs.filter(t => t.isNew).length} fila(s) nueva(s) sin persistir`
+                    : 'Sin cambios pendientes'
+                  }
+                  &nbsp;·&nbsp; Cambios guardados en modo demo / pendiente backend.
+                </p>
                 <SaveBtn state={saveState.tarifario} onClick={() => triggerSave('tarifario')} />
               </div>
             </div>
