@@ -3,7 +3,7 @@ export const NAV_LINKS = [
   { href: '/servicios', label: 'Servicios' },
   { href: '/cobertura',  label: 'Cobertura' },
   { href: '/nosotros',   label: 'Nosotros'  },
-  { href: '#',          label: 'Contacto'  },
+  { href: '/contacto',   label: 'Contacto'  },
 ] as const
 
 export const TRACKING_URL = process.env.NEXT_PUBLIC_TRACKING_URL ?? '#'
@@ -46,4 +46,13 @@ export const CONTACT_SCHEDULE = {
   weekdays: 'L-V 8:00 am – 7:00 pm',
   saturday: 'Sáb 9:00 am – 2:00 pm',
   sunday:   'Dom cerrado',
+} as const
+
+// Dirección oficial confirmada por BADA.
+export const CONTACT_ADDRESS = {
+  line1: 'H. Congreso de la Unión 6305',
+  line2: 'Tres Estrellas',
+  line3: 'Gustavo A. Madero',
+  line4: '07820 Ciudad de México, CDMX',
+  full:  'H. Congreso de la Unión 6305, Tres Estrellas, Gustavo A. Madero, 07820 Ciudad de México, CDMX',
 } as const
