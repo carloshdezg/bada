@@ -775,13 +775,14 @@ export default function NosotrosPage() {
                 rel="noopener noreferrer"
                 aria-label="Hablar con un asesor por WhatsApp (abre en nueva pestaña)"
                 className="inline-flex items-center gap-[10px]
-                           text-[15px] font-bold text-[#ffffff]
+                           text-[15px] font-bold text-brand-orange bg-white
                            px-[34px] py-4 rounded-[14px]
-                           border-2 border-[rgba(255,255,255,.40)]
-                           hover:bg-[rgba(255,255,255,.10)] hover:border-[rgba(255,255,255,.60)] hover:-translate-y-px
+                           shadow-[0_4px_24px_rgba(15,25,35,0.18)]
+                           hover:-translate-y-px hover:shadow-[0_8px_32px_rgba(15,25,35,0.22)]
                            transition-all duration-[250ms]"
               >
                 Hablar con un asesor
+                <ArrowRight className="w-[15px] h-[15px]" aria-hidden="true" />
               </a>
             </div>
 
